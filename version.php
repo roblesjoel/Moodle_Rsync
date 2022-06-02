@@ -17,14 +17,14 @@
 /**
  * Plugin version and other meta-data are defined here.
  *
- * @package     rsync
+ * @package     local_rsync
  * @copyright   2022, Joel Robles <joelgabriel.roblesgasser@students.bfh.ch> Vithursan Thayananthan <vithursan.thayananthan@students.bfh.ch>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'rsync'; # plugin name
+$plugin->component = 'local_rsync'; # plugin name
 $plugin->release = '0.0.1'; # plugin version
 $plugin->version = 2022060200; # version number YYYYMMDDXX where XX is an incremental number
 $plugin->requires = 2021051700; # min moodle version, 3.11
