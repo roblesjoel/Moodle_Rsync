@@ -17,8 +17,8 @@
 /**
  * External Web Service Template
  *
- * @package     local_ws_fileassistant
- * @copyright   2020 Nina Herrmann <nina.herrmann@uni-muenster.de> Luca Bösch <luca.boesch@bfh.ch>
+ * @package     local_rsync
+ * @copyright   2020, Nina Herrmann <nina.herrmann@uni-muenster.de> Luca Bösch <luca.boesch@bfh.ch>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -32,9 +32,9 @@ require_once($CFG->dirroot . '/mod/resource/lib.php');
 require_once($CFG->dirroot . '/mod/resource/locallib.php');
 
 /**
- * Class local_ws_fileassistant_external
+ * Class local_rsync_external
  */
-class local_ws_fileassistant_external extends external_api {
+class local_rsync_external extends external_api {
 
     /**
      * Returns description of method parameters

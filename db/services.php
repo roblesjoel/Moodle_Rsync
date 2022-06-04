@@ -33,13 +33,27 @@ $functions = array(
         'description' => 'Allows to create file resources in sections of a Moodle course with files in the \'Private files\' ' .
                          'area, and other things, too',
         'type'        => 'write',
+    ),
+    'local_rsync_push_file' => array(
+        'classname'   => 'local_rsync_file_push',
+        'methodname'  => 'push_file_to_private_files',
+        'classpath'   => 'local/rsync/file_push.php',
+        'description' => 'Allows you to push a file from your local machine to your private files',
+        'type'        => 'write',
+    ),
+    'local_rsync_remove_files_from_section' => array(
+        'classname'   => 'local_rsync_section',
+        'methodname'  => 'remove_all_files_from_section',
+        'classpath'   => 'local/rsync/section.php',
+        'description' => 'Allows you to remove all files from section',
+        'type'        => 'write',
     )
 );
 
 // We define the services to install as pre-build services. A pre-build service is not editable by administrator.
 $services = array(
-    'Create a file resource' => array(
-        'functions' => array ('local_rsync_create_file_resource'),
+    'rsync fucntionalities' => array(
+        'functions' => array ('local_rsync_create_file_resource, local_rsync_push_file, local_rsync_section'),
         'restrictedusers' => 0,
         'enabled' => 1,
     )
