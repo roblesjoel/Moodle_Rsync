@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot. '/course/lib.php'); // contains section visibility
+require_once($CFG->dirroot. '/course/lib.php'); // contains section visibility, section info
 
 /**
  * Class local_rsync_section
@@ -45,7 +45,7 @@ class local_rsync_section extends external_api {
     }
 
     /**
-     * Lets the user set the visi
+     * Lets the user set the visibilty of a section
      *
      * @param int $courseid course id
      * @param int $sectionnumber section number
@@ -92,11 +92,39 @@ class local_rsync_section extends external_api {
 
         return get_string('successmessage_section_visibility', 'local_rsync', array('visibility' => $visibility_long, 'sectionnumber' => $sectionnumber, 'courseid' => $courseid, 'username' => fullname($USER)));
     }
+
+
+    /**
+     * Lets the user remove a file from a section
+     * 
+     * @param int $courseud course id
+     * @param int $sectionnumber section number
+     */
+    public static function remove_file_from_section($courseid, $sectionnumber){
+        $modules = get_array_of_activities($courseid);
+
+        foreach($modules as $module){
+            if($module->section == $sectionnumber){
+                break;
+            }
+        }
+
+        return implode(';', $modules);
+    }
+
     /**
      * Returns description of method result value
      * @return external_description
      */
     public static function set_section_visibilty_returns() {
         return new external_value(PARAM_TEXT, 'Section number, course id and username');
+    }
+
+    /**
+     * Returns description of method result value
+     * @return external_description
+     */
+    public static function remove_file_from_section_returns() {
+        return new external_value(PARAM_TEXT, 'File name, section number, course id and username');
     }
 }
