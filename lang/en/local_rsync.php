@@ -32,3 +32,4 @@ $string['successmessage'] = 'Added file {$a->folder}{$a->file} by user {$a->user
 $string['successmessage_file_upload'] = 'Added file {$a->file} by user {$a->username} to course id {$a->courseid} in section {a->coursesection} with the name {$a->newname}.';
 $string['successmessage_section_visibility'] = 'Successfully {$a->visibility} section {$a->sectionnumber} in course with the id {$a->courseid} by user {$a->username}.';
 $string['successmessage_section_remove_file'] = 'Successfully removed file {$a->filename} in section {$a->sectionnumber} in the course with the id {$a->courseid} by user {$a->username}.';
+$string['successmessage_section_rename'] = 'Successfully renamed section with the id {$a->sectionnumber} to {$a->newsectionname} in the course with the id {$a->courseid} by user {$a->username}.';

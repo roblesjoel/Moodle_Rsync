@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot. '/course/lib.php'); // contains section visibility, section info
+require_once($CFG->dirroot. '/course/lib.php'); // contains section visibility, section info, course_delete_section, moveto_module, course_change_visibility
 
 /**
  * Class local_rsync_section
@@ -53,6 +53,19 @@ class local_rsync_section extends external_api {
             array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
                   'sectionnumber' => new external_value(PARAM_INT, 'In which section the files should be deleted', VALUE_REQUIRED),
                   'filename' => new external_value(PARAM_TEXT, 'The name of the file that should be deleted', VALUE_REQUIRED),
+            )
+        );
+    }
+
+        /**
+     * Returns description of method parameters
+     * @return external_function_parameters
+     */
+    public static function rename_section_parameters(){
+        return new external_function_parameters(
+            array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
+                  'sectionnumber' => new external_value(PARAM_INT, 'In which section the files should be deleted', VALUE_REQUIRED),
+                  'sectionname' => new external_value(PARAM_TEXT, 'The new name of the section', VALUE_REQUIRED),
             )
         );
     }
@@ -112,6 +125,8 @@ class local_rsync_section extends external_api {
      * 
      * @param int $courseud course id
      * @param int $sectionnumber section number
+     * @param string $filename the name of the file to be removed
+     * @return string A string describing the result
      */
     public static function remove_file_from_section($courseid, $sectionnumber, $filename){
         global $USER;
@@ -151,6 +166,56 @@ class local_rsync_section extends external_api {
     }
 
     /**
+     * 
+     */
+    public static function rename_section($courseid, $sectionnumber, $sectionname){
+        global $USER, $DB;
+
+        $params = self::validate_parameters(self::rename_section_parameters(),
+        array('courseid' => $courseid,
+            'sectionnumber' => $sectionnumber,
+            'sectionname' => $sectionname));
+
+        // Context validation.
+        $context = \context_user::instance($USER->id);
+        self::validate_context($context);
+
+
+        // Capability checking.
+        // OPTIONAL but in most web service it should present.
+        if (!has_capability('repository/user:view', $context)) {
+            throw new moodle_exception('cannotviewprofile');
+        }
+        if (!has_capability('moodle/user:manageownfiles', $context)) {
+            throw new moodle_exception('cannotviewprofile');
+        }
+        $coursecontext = \context_course::instance($courseid);
+        if (!has_capability('moodle/course:manageactivities', $coursecontext)) {
+            throw new moodle_exception('cannotaddcoursemodule');
+        }
+
+        //course_update_section($courseid, $sectionnumber, array('name' => $sectionname));
+
+        if ($section = $DB->get_record("course_sections", array("course"=>$courseid, "section"=>$sectionnumber))) {
+            course_update_section($courseid, $section, array('name' => $sectionname));
+    
+            // Determine which modules are visible for AJAX update
+            /*$modules = !empty($section->sequence) ? explode(',', $section->sequence) : array();
+            if (!empty($modules)) {
+                list($insql, $params) = $DB->get_in_or_equal($modules);
+                $select = 'id ' . $insql . ' AND visible = ?';
+                array_push($params, $visibility);
+                if (!$visibility) {
+                    $select .= ' AND visibleold = 1';
+                }
+                $resourcestotoggle = $DB->get_fieldset_select('course_modules', 'id', $select, $params);
+            }*/
+        }
+
+        return get_string('successmessage_section_rename', 'local_rsync', array('sectionnumber' => $sectionnumber, 'newsectionname' => $sectionname, 'courseid' => $courseid, 'username' => fullname($USER)));
+    }
+
+    /**
      * Returns description of method result value
      * @return external_description
      */
@@ -163,6 +228,14 @@ class local_rsync_section extends external_api {
      * @return external_description
      */
     public static function remove_file_from_section_returns() {
+        return new external_value(PARAM_TEXT, 'File name, section number, course id and username');
+    }
+
+    /**
+     * Returns description of method result value
+     * @return external_description
+     */
+    public static function rename_section_returns() {
         return new external_value(PARAM_TEXT, 'File name, section number, course id and username');
     }
 }
