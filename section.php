@@ -70,7 +70,7 @@ class local_rsync_section extends external_api {
         );
     }
 
-        /**
+    /**
      * Returns description of method parameters
      * @return external_function_parameters
      */
@@ -78,6 +78,20 @@ class local_rsync_section extends external_api {
         return new external_function_parameters(
             array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
                   'sectionnumber' => new external_value(PARAM_INT, 'In which section the files should be deleted', VALUE_REQUIRED),
+            )
+        );
+    }
+    
+    /**
+     * Returns description of method parameters
+     * @return external_function_parameters
+     */
+    public static function set_file_visibility_parameters(){
+        return new external_function_parameters(
+            array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
+                  'sectionnumber' => new external_value(PARAM_INT, 'In which section the files should be deleted', VALUE_REQUIRED),
+                  'filename' => new external_value(PARAM_TEXT, 'The name of the file', VALUE_REQUIRED),
+                  'visibility' => new external_value(PARAM_INT, 'The state of visibility to set the file in', VALUE_REQUIRED),
             )
         );
     }
@@ -279,6 +293,69 @@ class local_rsync_section extends external_api {
     }
 
     /**
+     * Lets the user set the visiblity of a file in a section
+     * 
+     * @param int $courseud course id
+     * @param int $sectionnumber section number
+     * @param string $sectionname the new name of the section
+     * @param int $visiblity the visiblity of the file
+     * @return string A string describing the result
+     */
+    public static function set_file_visibility($courseid, $sectionnumber, $filename, $visibility){
+        global $USER;
+
+        $params = self::validate_parameters(self::set_file_visibility_parameters(),
+        array('courseid' => $courseid,
+            'sectionnumber' => $sectionnumber,
+            'filename' => $filename,
+            'visibility' => $visibility));
+
+        // Context validation.
+        $context = \context_user::instance($USER->id);
+        self::validate_context($context);
+
+
+        // Capability checking.
+        // OPTIONAL but in most web service it should present.
+        if (!has_capability('repository/user:view', $context)) {
+            throw new moodle_exception('cannotviewprofile');
+        }
+        if (!has_capability('moodle/user:manageownfiles', $context)) {
+            throw new moodle_exception('cannotviewprofile');
+        }
+        $coursecontext = \context_course::instance($courseid);
+        if (!has_capability('moodle/course:manageactivities', $coursecontext)) {
+            throw new moodle_exception('cannotaddcoursemodule');
+        }
+
+        $modules = get_array_of_activities($courseid);
+
+        $foundmodule = false;
+
+        foreach($modules as $module){
+            if($module->section == $sectionnumber && $module->name == $filename){
+                $foundmodule = set_coursemodule_visible($module->cm, $visibility, $visibility);
+            }
+        }
+
+        $visibility_long = '';
+
+        if ($visibility == 0){
+            $visibility_long = 'hidden';
+        }
+        else{
+            $visibility_long = 'unhidden';
+        }
+
+        if($foundmodule){
+            return get_string('successmessage_section_file_visibility', 'local_rsync', array('visibility' => $visibility_long,'filename' => $filename, 'sectionnumber' => $sectionnumber, 'courseid' => $courseid, 'username' => fullname($USER)));
+        }
+        else{
+            return get_string('errormessage_section_file_visibility', 'local_rsync', array('filename' => $filename, 'sectionnumber' => $sectionnumber, 'courseid' => $courseid, 'username' => fullname($USER)));
+        }        
+    }
+
+    /**
      * Returns description of method result value
      * @return external_description
      */
@@ -307,6 +384,14 @@ class local_rsync_section extends external_api {
      * @return external_description
      */
     public static function remove_section_returns() {
+        return new external_value(PARAM_TEXT, 'Section number, course id and username');
+    }
+
+    /**
+     * Returns description of method result value
+     * @return external_description
+     */
+    public static function set_file_visibility_returns() {
         return new external_value(PARAM_TEXT, 'Section number, course id and username');
     }
 }

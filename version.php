@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_rsync'; # plugin name
-$plugin->release = '0.4.0'; # plugin version
+$plugin->release = '0.5.0'; # plugin version
 $plugin->version = 2022060200; # version number YYYYMMDDXX where XX is an incremental number
 $plugin->requires = 2021051700; # min moodle version, 3.11
 $plugin->maturity = MATURITY_ALPHA; # MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC or MATURITY_STABLE
