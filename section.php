@@ -123,6 +123,19 @@ class local_rsync_section extends external_api {
     }
 
     /**
+     * Returns description of method parameters
+     * @return external_function_parameters
+     */
+    public static function move_all_modules_to_other_section_parameters(){
+        return new external_function_parameters(
+            array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
+                  'sectionnumber' => new external_value(PARAM_INT, 'In which section the modules should be deleted', VALUE_REQUIRED),
+                  'targetsectionnumber' => new external_value(PARAM_INT, 'In which section the modules should be copied to', VALUE_REQUIRED),
+            )
+        );
+    }
+
+    /**
      * Lets the user set the visibilty of a section
      *
      * @param int $courseid course id
@@ -479,6 +492,53 @@ class local_rsync_section extends external_api {
     }
 
     /**
+     * Lets the user move all modules from a section to an other
+     * 
+     * @param int $courseid course id
+     * @param int $sectionumber section number
+     * @param int $targetsectionnumber target section number
+     * @return string A string describing the result
+     */
+    public static function move_all_modules_to_other_section($courseid, $sectionnumber, $targetsectionnumber){
+        global $USER;
+
+        $params = self::validate_parameters(self::move_all_modules_to_other_section_parameters(),
+        array('courseid' => $courseid,
+        'sectionnumber' => $sectionnumber,
+        'targetsectionnumber' => $targetsectionnumber));
+
+        // Context validation.
+        $context = \context_user::instance($USER->id);
+        self::validate_context($context);
+
+        // Capability checking.
+        // OPTIONAL but in most web service it should present.
+        if (!has_capability('repository/user:view', $context)) {
+            throw new moodle_exception('cannotviewprofile');
+        }
+        if (!has_capability('moodle/user:manageownfiles', $context)) {
+            throw new moodle_exception('cannotviewprofile');
+        }
+        $coursecontext = \context_course::instance($courseid);
+        if (!has_capability('moodle/course:manageactivities', $coursecontext)) {
+            throw new moodle_exception('cannotaddcoursemodule');
+        }
+
+        $modules = get_array_of_activities($courseid);
+
+        foreach($modules as $module){
+            if($module->section == $sectionnumber){
+                $coursemodinfo = get_fast_modinfo($courseid, 0, false);
+                $mod = $coursemodinfo->get_cm($module->cm);
+                $sectioninfo = $coursemodinfo->get_section_info($targetsectionnumber);
+                moveto_module($mod, $sectioninfo);
+            }
+        }
+
+        return get_string('successmessage_section_all_module_movement', 'local_rsync', array('sectionid' => $sectionnumber, 'targetsectionid' => $targetsectionnumber, 'courseid' => $courseid, 'username' => fullname($USER)));
+    }
+
+    /**
      * Returns description of method result value
      * @return external_description
      */
@@ -532,5 +592,13 @@ class local_rsync_section extends external_api {
      */
     public static function move_file_to_other_section_returns() {
         return new external_value(PARAM_TEXT, 'Module name, section number, target section number, course id and username');
+    }
+
+    /**
+     * Returns description of method result value
+     * @return external_description
+     */
+    public static function move_all_modules_to_other_section_returns() {
+        return new external_value(PARAM_TEXT, 'Section number, target section number, course id and username');
     }
 }
