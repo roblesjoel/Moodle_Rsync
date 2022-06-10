@@ -37,6 +37,7 @@ $string['successmessage_section_rename'] = 'Successfully renamed section with th
 $string['successmessage_section_remove'] = 'Successfully removed section with the id {$a->sectionnumber} in the course with the id {$a->courseid} by user {$a->username}.';
 $string['successmessage_section_file_visibility'] = 'Successfully {$a->visibility} file with the name {a->filename} in section with the id {$a->sectionnumber} in the course with the id {$a->courseid} by user {$a->username}.';
 $string['successmessage_section_file_removal'] = 'Successfully removed all files from the section with the id {$a->sectionnumber} in the course with the id {$a->courseid} by user {$a->username}.';
+$string['successmessage_section_module_movement'] = 'Successfully moved module with the name {$a->modulename} from section with the id {$a->sectionid} to the section with the id {$a->targetsectionid} in the course with the id {$a->courseid} by user {$a->username}.';
 
 $string['errormessage_section_rename'] = 'An error occured while removing section with the id {$a->sectionnumber} in the course with the id {$a->courseid} by user {$a->username}.';
 $string['errormessage_section_file_visibility'] = 'An error occured while changing visiblity of file with the name {$a->filename} in section with the id {$a->sectionnumber} in the course with the id {$a->courseid} by user {$a->username}.';

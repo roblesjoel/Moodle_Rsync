@@ -109,6 +109,20 @@ class local_rsync_section extends external_api {
     }
 
     /**
+     * Returns description of method parameters
+     * @return external_function_parameters
+     */
+    public static function move_file_to_other_section_parameters(){
+        return new external_function_parameters(
+            array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
+                  'sectionnumber' => new external_value(PARAM_INT, 'In which section the files should be deleted', VALUE_REQUIRED),
+                  'targetsectionnumber' => new external_value(PARAM_INT, 'In which section the files should be deleted', VALUE_REQUIRED),
+                  'modulename' => new external_value(PARAM_TEXT, 'In which section the files should be deleted', VALUE_REQUIRED),
+            )
+        );
+    }
+
+    /**
      * Lets the user set the visibilty of a section
      *
      * @param int $courseid course id
@@ -411,6 +425,60 @@ class local_rsync_section extends external_api {
     }
 
     /**
+     * Lets the user move a module from a section to an other
+     * 
+     * @param int $courseid course id
+     * @param int $sectionnumber section number
+     * @param int $targetsectionnumber target section number
+     * @param string $modulename name of the module to be moved
+     * @return string A string describing the result
+     */
+    public static function move_file_to_other_section($courseid, $sectionnumber, $targetsectionnumber, $modulename){
+        global $USER;
+
+        $params = self::validate_parameters(self::move_file_to_other_section_parameters(),
+        array('courseid' => $courseid,
+        'sectionnumber' => $sectionnumber,
+        'targetsectionnumber' => $targetsectionnumber,
+        'modulename' => $modulename));
+
+        // Context validation.
+        $context = \context_user::instance($USER->id);
+        self::validate_context($context);
+
+        // Capability checking.
+        // OPTIONAL but in most web service it should present.
+        if (!has_capability('repository/user:view', $context)) {
+            throw new moodle_exception('cannotviewprofile');
+        }
+        if (!has_capability('moodle/user:manageownfiles', $context)) {
+            throw new moodle_exception('cannotviewprofile');
+        }
+        $coursecontext = \context_course::instance($courseid);
+        if (!has_capability('moodle/course:manageactivities', $coursecontext)) {
+            throw new moodle_exception('cannotaddcoursemodule');
+        }
+
+        $modules = get_array_of_activities($courseid);
+
+        foreach($modules as $module){
+            if($module->section == $sectionnumber && $module->name == $modulename){
+                $coursemodinfo = get_fast_modinfo($courseid, 0, false);
+                $coursesections = $coursemodinfo->get_sections();
+                $section = $coursesections[$targetsectionnumber];
+                $firstmodid = $section[0];
+                $mod = $coursemodinfo->get_cm($module->cm);
+                $sectioninfo = $coursemodinfo->get_section_info($targetsectionnumber);
+                moveto_module($mod, $sectioninfo);
+
+                return get_string('successmessage_section_module_movement', 'local_rsync', array('modulename' => $modulename, 'sectionid' => $sectionnumber, 'targetsectionid' => $targetsectionnumber, 'courseid' => $courseid, 'username' => fullname($USER)));
+            }
+        }
+
+        return 'noup';
+    }
+
+    /**
      * Returns description of method result value
      * @return external_description
      */
@@ -456,5 +524,13 @@ class local_rsync_section extends external_api {
      */
     public static function remove_all_files_from_section_returns() {
         return new external_value(PARAM_TEXT, 'Section number, course id and username');
+    }
+
+    /**
+     * Returns description of method result value
+     * @return external_description
+     */
+    public static function move_file_to_other_section_returns() {
+        return new external_value(PARAM_TEXT, 'Module name, section number, target section number, course id and username');
     }
 }
