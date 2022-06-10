@@ -75,6 +75,13 @@ $functions = array(
         'classpath'   => 'local/rsync/section.php',
         'description' => 'Allows you to remove all files in a section',
         'type'        => 'write',
+    ),
+    'local_rsync_change_course_visibility' => array(
+        'classname'   => 'local_rsync_course',
+        'methodname'  => 'change_course_visibility',
+        'classpath'   => 'local/rsync/course.php',
+        'description' => 'Allows you the set the visibility of a course',
+        'type'        => 'write',
     )
 );
 
@@ -83,7 +90,7 @@ $functions = array(
 // We define the services to install as pre-build services. A pre-build service is not editable by administrator.
 $services = array(
     'rsync fucntionalities' => array(
-        'functions' => array ('local_rsync_create_file_resource', 'local_rsync_set_section_visibility', 'local_rsync_remove_file_from_section', 'local_rsync_rename_section', 'local_rsync_remove_section', 'local_rsync_set_file_visibility', 'local_rsync_remove_all_files_from_section'),
+        'functions' => array ('local_rsync_create_file_resource', 'local_rsync_set_section_visibility', 'local_rsync_remove_file_from_section', 'local_rsync_rename_section', 'local_rsync_remove_section', 'local_rsync_set_file_visibility', 'local_rsync_remove_all_files_from_section', 'local_rsync_change_course_visibility'),
         'restrictedusers' => 0,
         'enabled' => 1,
     )
