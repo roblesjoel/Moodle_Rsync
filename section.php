@@ -97,6 +97,18 @@ class local_rsync_section extends external_api {
     }
 
     /**
+     * Returns description of method parameters
+     * @return external_function_parameters
+     */
+    public static function remove_all_files_from_section_parameters(){
+        return new external_function_parameters(
+            array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
+                  'sectionnumber' => new external_value(PARAM_INT, 'In which section the files should be deleted', VALUE_REQUIRED),
+            )
+        );
+    }
+
+    /**
      * Lets the user set the visibilty of a section
      *
      * @param int $courseid course id
@@ -356,6 +368,49 @@ class local_rsync_section extends external_api {
     }
 
     /**
+     * Lets the user remove all files from a section
+     * 
+     * @param int $courseid course id
+     * @param int $sectionnumber section number
+     * @return string A string describing the result
+     */
+    public static function remove_all_files_from_section($courseid, $sectionnumber){
+        global $USER;
+
+        $params = self::validate_parameters(self::remove_all_files_from_section_parameters(),
+        array('courseid' => $courseid,
+            'sectionnumber' => $sectionnumber));
+
+        // Context validation.
+        $context = \context_user::instance($USER->id);
+        self::validate_context($context);
+
+
+        // Capability checking.
+        // OPTIONAL but in most web service it should present.
+        if (!has_capability('repository/user:view', $context)) {
+            throw new moodle_exception('cannotviewprofile');
+        }
+        if (!has_capability('moodle/user:manageownfiles', $context)) {
+            throw new moodle_exception('cannotviewprofile');
+        }
+        $coursecontext = \context_course::instance($courseid);
+        if (!has_capability('moodle/course:manageactivities', $coursecontext)) {
+            throw new moodle_exception('cannotaddcoursemodule');
+        }
+
+        $modules = get_array_of_activities($courseid);
+
+        foreach($modules as $module){
+            if($module->section == $sectionnumber){
+                course_delete_module($module->cm);
+            }
+        }
+
+        return get_string('successmessage_section_file_removal', 'local_rsync', array('sectionnumber' => $sectionnumber, 'courseid' => $courseid, 'username' => fullname($USER)));
+    }
+
+    /**
      * Returns description of method result value
      * @return external_description
      */
@@ -392,6 +447,14 @@ class local_rsync_section extends external_api {
      * @return external_description
      */
     public static function set_file_visibility_returns() {
+        return new external_value(PARAM_TEXT, 'Section number, course id and username');
+    }
+
+    /**
+     * Returns description of method result value
+     * @return external_description
+     */
+    public static function remove_all_files_from_section_returns() {
         return new external_value(PARAM_TEXT, 'Section number, course id and username');
     }
 }
