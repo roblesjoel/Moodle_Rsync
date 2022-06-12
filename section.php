@@ -136,6 +136,17 @@ class local_rsync_section extends external_api {
     }
 
     /**
+     * Returns description of method parameters
+     * @return external_function_parameters
+     */
+    public static function remove_all_sections_parameters(){
+        return new external_function_parameters(
+            array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
+            )
+        );
+    }
+
+    /**
      * Lets the user set the visibilty of a section
      *
      * @param int $courseid course id
@@ -329,6 +340,50 @@ class local_rsync_section extends external_api {
         else{
             return get_string('errormessage_section_rename', 'local_rsync', array('sectionnumber' => $sectionnumber, 'courseid' => $courseid, 'username' => fullname($USER)));
         }
+    }
+
+    /**
+     * Lets the user remove all sections from course
+     * 
+     * @param int $course id
+     * @return string A string describing the result
+     */
+    public static function remove_all_sections($courseid){
+        global $USER;
+
+        $params = self::validate_parameters(self::remove_section_parameters(),
+        array('courseid' => $courseid,
+            'sectionnumber' => $sectionnumber));
+
+        // Context validation.
+        $context = \context_user::instance($USER->id);
+        self::validate_context($context);
+
+
+        // Capability checking.
+        // OPTIONAL but in most web service it should present.
+        if (!has_capability('repository/user:view', $context)) {
+            throw new moodle_exception('cannotviewprofile');
+        }
+        if (!has_capability('moodle/user:manageownfiles', $context)) {
+            throw new moodle_exception('cannotviewprofile');
+        }
+        $coursecontext = \context_course::instance($courseid);
+        if (!has_capability('moodle/course:manageactivities', $coursecontext)) {
+            throw new moodle_exception('cannotaddcoursemodule');
+        }
+
+        $coursesections = get_fast_modinfo($courseid)->get_section_info_all();
+
+        $lenght = count($coursesections);
+
+        for($i = $lenght-1; $i >= 1; $i--){
+            $result = course_delete_section($courseid, $i);
+            if(!$result){
+                throw new moodle_exception('removalfailed');
+            }
+        }
+        return get_string('successmessage_remove_all_sections', 'local_rsync', array('courseid' => $courseid, 'username' => fullname($USER)));
     }
 
     /**
@@ -600,5 +655,13 @@ class local_rsync_section extends external_api {
      */
     public static function move_all_modules_to_other_section_returns() {
         return new external_value(PARAM_TEXT, 'Section number, target section number, course id and username');
+    }
+
+    /**
+     * Returns description of method result value
+     * @return external_description
+     */
+    public static function remove_all_sections_returns() {
+        return new external_value(PARAM_TEXT, 'Course id and username');
     }
 }
