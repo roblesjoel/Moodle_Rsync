@@ -96,13 +96,20 @@ $functions = array(
         'classpath'   => 'local/rsync/course.php',
         'description' => 'Allows you the set the visibility of a course',
         'type'        => 'write',
+    ),
+    'local_rsync_copy_course' => array(
+        'classname'   => 'local_rsync_course',
+        'methodname'  => 'copy_course',
+        'classpath'   => 'local/rsync/course.php',
+        'description' => 'Allows you to copy a course to an other. The data in the new course will be overwritten',
+        'type'        => 'write',
     )
 );
 
 // We define the services to install as pre-build services. A pre-build service is not editable by administrator.
 $services = array(
     'rsync fucntionalities' => array(
-        'functions' => array ('local_rsync_create_file_resource', 'local_rsync_set_section_visibility', 'local_rsync_remove_file_from_section', 'local_rsync_rename_section', 'local_rsync_remove_section', 'local_rsync_set_file_visibility', 'local_rsync_remove_all_files_from_section', 'local_rsync_change_course_visibility', 'local_rsync_move_file_to_other_section', 'local_rsync_move_all_modules_to_other_section'),
+        'functions' => array ('local_rsync_create_file_resource', 'local_rsync_set_section_visibility', 'local_rsync_remove_file_from_section', 'local_rsync_rename_section', 'local_rsync_remove_section', 'local_rsync_set_file_visibility', 'local_rsync_remove_all_files_from_section', 'local_rsync_change_course_visibility', 'local_rsync_move_file_to_other_section', 'local_rsync_move_all_modules_to_other_section', 'local_rsync_copy_course'),
         'restrictedusers' => 0,
         'enabled' => 1,
     )

@@ -44,3 +44,4 @@ $string['errormessage_section_rename'] = 'An error occured while removing sectio
 $string['errormessage_section_file_visibility'] = 'An error occured while changing visiblity of file with the name {$a->filename} in section with the id {$a->sectionnumber} in the course with the id {$a->courseid} by user {$a->username}.';
 
 $string['successmessage_course_visibility'] = 'Successfully {$a->visibility} course with the id {$a->courseid} by user {$a->username}.';
+$string['successmessage_course_copy'] = 'Successfully copied the course with the id {$a->courseid} to the course with the id {$a->newcourseid} by user {$a->username}.';
