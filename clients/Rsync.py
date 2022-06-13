@@ -3,7 +3,7 @@ from optparse import OptionParser
 from tkinter.messagebox import NO
 import requests
 url = 'http://192.168.64.3/moodle/webservice/rest/server.php'
-wstoken = 'b8c810369a24363721069cdeff46d37e'
+wstoken = '18ca69e1f635e64e104a24353f060780'
 error = 'ERRORCODE'
 
 # usage = "usage: %prog [options] arg1 arg2"
@@ -11,17 +11,17 @@ error = 'ERRORCODE'
 
 parser = OptionParser()
 # course -c
-# Visibility: v,courseid,visibilty -> v,2,1
+# Visibility: v,courseid,visibility -> v,2,1
 # Copy: cp,courseid,targetcourseid -> cp,2,3
-coursehelp = 'Command to change a course. Visibility: v,courseid,visibilty -> v,2,1. Copy: cp,courseid,targetcourseid -> cp,2,3'
+coursehelp = 'Command to change a course. Visibility: v,courseid,visibility -> v,2,1. Copy: cp,courseid,targetcourseid -> cp,2,3'
 parser.add_option("-c", "--course", dest="course", type="string", help=coursehelp)
 
 # section -s
-# Visiblity: v,courseid,sectionnumber,visbilty -> v,2,2,1
+# Visibility: v,courseid,sectionnumber,visibility -> v,2,2,1
 # Rename: rn,courseid,sectionumber,sectionname -> rn,2,2,newname
 # Remove: rm,courseid,sectionumber -> rm,2,2
 # Remove all: rma,courseid -> rma,2
-sectionhelp = 'Command to change a section. Visiblity: v,courseid,sectionnumber,visbilty -> v,2,2,1. Rename: rn,courseid,sectionumber,sectionname -> rn,2,2,newname. Remove: rm,courseid,sectionumber -> rm,2,2. Remove all: rma,courseid -> rma,2'
+sectionhelp = 'Command to change a section. Visibility: v,courseid,sectionnumber,visibility -> v,2,2,1. Rename: rn,courseid,sectionumber,sectionname -> rn,2,2,newname. Remove: rm,courseid,sectionumber -> rm,2,2. Remove all: rma,courseid -> rma,2'
 parser.add_option("-s", "--section", dest="section", type="string", help=sectionhelp)
 
 # module -m
@@ -33,9 +33,15 @@ parser.add_option("-s", "--section", dest="section", type="string", help=section
 modulehelp = 'Command to change a module. Visibility: v,courseid,sectionnumer,visibility,modulename -> v,2,2,test.pdf,1. Remove from section: rm,courseid,sectionnumber,modulename -> rm,2,2,test.pdf. Remove all from section: rma,courseid,sectionnumber -> rma,2,2. Move to other section: mv,courseid,sectionnumber,targetsectionnumber,modulename -> mv,2,2,3,test.pdf. Move all to other section: mva,courseid,sectionnumber,targetsectionumber -> mva,2,2,3'
 parser.add_option("-m", "--module", dest="module", type="string", help=modulehelp)
 
+# wstoken -t
+parser.add_option("-t", "--token", dest="token", type="string", help="Command to change the default token.")
+
+# host -u
+parser.add_option("-u", "--url", dest="host", type="string", help="Command to change the default host url.")
+
 (options, args) = parser.parse_args()
 
-commandlist = ['cv', 'cp', 'sv', 'srn', 'srm', 'srma', 'mv', 'mrm', 'mrma', 'mmv', 'mmva', 'q']
+commandlist = ['cv', 'ccp', 'sv', 'srn', 'srm', 'srma', 'mv', 'mrm', 'mrma', 'mmv', 'mmva', 'q']
 commandlistText = ['Change the visibility of a course', 'Copy a course to an other (removes target course content)', 'Change the visibility of a section', 'Rename target section', 'Remove target section',
                    'Remove all sections from course', 'Change the visibility of a module', 'Remove module from section', 'Remove all modules from section', 'Move module to other section', 'Move all modules from a section to an other', 'Quit Moodle rsync']
 
@@ -52,7 +58,7 @@ def printsuccess(successdata):
     print(successmessage)
 
 
-def set_course_visibilty(courseid, visibility):
+def set_course_visibility(courseid, visibility):
     if(visibility != '0' and visibility != '1'):
         print("The visibility value needs to be 0 or 1")
         return 1
@@ -70,7 +76,7 @@ def set_course_visibilty(courseid, visibility):
     return 0
 
 
-def set_section_visibilty(courseid, sectionnumber, visibility):
+def set_section_visibility(courseid, sectionnumber, visibility):
     # curl -d 'wstoken=e09069aa9854dcc77ed4ad0f70626474' -d 'wsfunction=local_rsync_set_section_visibility' -d 'courseid=2' -d 'sectionnumber=2' -d 'visibility=1' http://192.168.64.3/moodle/webservice/rest/server.php
     if(visibility != '0' and visibility != '1'):
         print("The visibility value needs to be 0 or 1")
@@ -236,7 +242,14 @@ def upload_folder():
 
 
 if(options.course == options.section == options.module is None):
-    print('Welcome to Moodle Rsync!\nPossible Commands:')
+    print('Welcome to Moodle Rsync!')
+    token = input('Enter a custum token (leave blank for default): ')
+    hosturl = input('Enter a custum url (leave blank for default): ')
+    if(token != ''):
+        wstoken = token
+    if(hosturl != ''):
+        url = hosturl
+    print('Possible commands:')
 
     optionscount = len(commandlist)
 
@@ -254,7 +267,7 @@ if(options.course == options.section == options.module is None):
             elif(chosencommand == 'cv'):
                 courseid = input('Enter the id of the course: ')
                 visibility = input('Enter the visibility value (0 for hidden, 1 for shown): ')
-                set_course_visibilty(courseid, visibility)
+                set_course_visibility(courseid, visibility)
             elif(chosencommand == 'cp'):
                 courseid = input('Enter the id of the course to be copied: ')
                 targetcourseid = input('Enter the id of the target course: ')
@@ -263,7 +276,7 @@ if(options.course == options.section == options.module is None):
                 courseid = input('Enter the id of the course: ')
                 sectionnumber = input('Enter the number of the section: ')
                 visibility = input('Enter the visibility value (0 for hidden, 1 for shown): ')
-                set_section_visibilty(courseid, sectionnumber, visibility)
+                set_section_visibility(courseid, sectionnumber, visibility)
             elif(chosencommand == 'srn'):
                 courseid = input('Enter the id of the course: ')
                 sectionnumber = input('Enter the number of the section to be renamed: ')
@@ -310,6 +323,14 @@ courseoptions = options.course
 sectionoptions = options.section
 moduleoptions = options.module
 
+token = options.token
+hosturl = options.host
+if(token is not None):
+    wstoken = token
+if(hosturl is not None):
+    url = hosturl
+
+
 if(courseoptions is not None):
     # split at -
     optionssplits = courseoptions.split('-')
@@ -319,7 +340,7 @@ if(courseoptions is not None):
         if(infos[0] == 'cp'):
             copy_course(infos[1], infos[2])
         if(infos[0] == 'v'):
-            set_course_visibilty(infos[1], infos[2])
+            set_course_visibility(infos[1], infos[2])
 if(sectionoptions is not None):
     # split at -
     optionssplits = sectionoptions.split('-')
@@ -327,7 +348,7 @@ if(sectionoptions is not None):
     for optionsplit in optionssplits:
         infos = optionsplit.split(',')
         if(infos[0] == 'v'):
-            set_section_visibilty(infos[1], infos[2], infos[3])
+            set_section_visibility(infos[1], infos[2], infos[3])
         if(infos[0] == 'rn'):
             rename_section(infos[1], infos[2], infos[3])
         if(infos[0] == 'rm'):

@@ -26,7 +26,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot. '/course/lib.php');
-// Contains section visibility, section info, moveto_module, course_change_visibility.
+require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
+require_once($CFG->dirroot . "/backup/util/includes/restore_includes.php");
 
 /**
  * Class local_rsync_section
@@ -134,7 +135,7 @@ class local_rsync_section extends external_api {
             array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
                   'sectionnumber' => new external_value(PARAM_INT, 'In which section the modules should be deleted',
                       VALUE_REQUIRED),
-                  'targetsectionnumber' => new external_value(PARAM_INT, 'In which section the modules should be copied to',
+                  'targetsectionnumber' => new external_value(PARAM_INT, 'In which section the modules should be moved to',
                       VALUE_REQUIRED),
             )
         );
@@ -147,6 +148,23 @@ class local_rsync_section extends external_api {
     public static function remove_all_sections_parameters() {
         return new external_function_parameters(
             array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
+            )
+        );
+    }
+
+    /**
+     * Returns description of method parameters
+     * @return external_function_parameters
+     */
+    public static function copy_module_parameters() {
+        return new external_function_parameters(
+            array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
+                  'sectionnumber' => new external_value(PARAM_INT, 'In which section the modules should be deleted',
+                            VALUE_REQUIRED),
+                  'targetsectionnumber' => new external_value(PARAM_INT, 'In which section the modules should be copied to',
+                      VALUE_REQUIRED),
+                  'modulename' => new external_value(PARAM_TEXT, 'Name of the module to be copied',
+                      VALUE_REQUIRED),
             )
         );
     }
@@ -603,6 +621,99 @@ class local_rsync_section extends external_api {
     }
 
     /**
+     * Lets the user copy a module and insert it into a section
+     * 
+     * @param int $courseid course id
+     * @param int $sectionnumber section number
+     * @param int $targetsectionnumber target section number
+     * @param string $modulename name of the module to be copied
+     * @return string A string describing the result
+     * @throws moodle_exception if the course, the section, the target section or the module doesnt exist.
+     * @throws moodle_exception if the user isn't allowed to perfom the action
+     */
+    public static function copy_module($courseid, $sectionnumber, $targetsectionnumber, $modulename) {
+        global $USER, $DB;
+
+        $params = self::validate_parameters(self::copy_module_parameters(),
+        array('courseid' => $courseid,
+        'sectionnumber' => $sectionnumber,
+        'targetsectionnumber' => $targetsectionnumber,
+        'modulename' => $modulename));
+
+        // Context validation.
+        $context = \context_user::instance($USER->id);
+        self::validate_context($context);
+
+        // Capability checking.
+        // OPTIONAL but in most web service it should present.
+        if (!has_capability('repository/user:view', $context)) {
+            throw new moodle_exception('cannotviewprofile');
+        }
+        if (!has_capability('moodle/user:manageownfiles', $context)) {
+            throw new moodle_exception('cannotviewprofile');
+        }
+        $coursecontext = \context_course::instance($courseid);
+        if (!has_capability('moodle/course:manageactivities', $coursecontext)) {
+            throw new moodle_exception('cannotaddcoursemodule');
+        }
+
+        $course = $DB->get_record('course', array('id' => $courseid));
+        if($course == null){
+            throw new moodle_exception('coursenotfound');
+        }
+
+        $modules = get_array_of_activities($courseid);
+        $duplicatedmodule = null;
+
+        foreach ($modules as $module) {
+            if ($module->name == $modulename && $module->section == $sectionnumber) {
+                $bc = new backup_controller(backup::TYPE_1ACTIVITY, $module->cm, backup::FORMAT_MOODLE, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id);
+                $backupid       = $bc->get_backupid();
+                $backupbasepath = $bc->get_plan()->get_basepath();
+                $bc->execute_plan();
+                $format = $bc->get_format();
+                /*$type = $bc->get_type();
+                $id = $bc->get_id();
+                $users = $bc->get_plan()->get_setting('users')->get_value();
+                $anonymised = $bc->get_plan()->get_setting('anonymize')->get_value();
+                $filename = backup_plan_dbops::get_default_backup_filename($format, $type, $id, $users, $anonymised);
+                $bc->get_plan()->get_setting('filename')->set_value($filename);*/
+                $bc->destroy();
+                $rc = new restore_controller($backupid, $courseid, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id, backup::TARGET_CURRENT_ADDING);
+                $cmcontext = context_module::instance($module->id);
+                $rc->execute_precheck();
+                $rc->execute_plan();
+                $newcmid = null;
+                $tasks = $rc->get_plan()->get_tasks();
+                foreach ($tasks as $task) {
+                    if (is_subclass_of($task, 'restore_activity_task')) {
+                        if ($task->get_old_contextid() == $cmcontext->id) {
+                            $newcmid = $task->get_moduleid();
+                            break;
+                        }
+                    }
+                }
+                $rc->destroy();
+                
+                if(!$newcmid) {
+                    throw new moodle_exception('newmodulenotfound');
+                }
+
+                $newcm = get_coursemodule_from_id($module->mod, $newcmid, $module->course);
+                // Add ' (copy)' to duplicates. Note we don't cleanup or validate lengths here. It comes
+                // from original name that was valid, so the copy should be too.
+        
+                $section = $DB->get_record('course_sections', array('id' => $targetsectionnumber, 'course' => $module->course));
+                moveto_module($newcm, $section);
+
+                break;
+            }
+        }
+
+        return 'should work';
+    }
+
+    /**
      * Returns description of method result value
      * @return external_description
      */
@@ -671,6 +782,14 @@ class local_rsync_section extends external_api {
      * @return external_description
      */
     public static function remove_all_sections_returns() {
+        return new external_value(PARAM_TEXT, 'Course id and username');
+    }
+
+    /**
+     * Returns description of method result value
+     * @return external_description
+     */
+    public static function copy_module_returns() {
         return new external_value(PARAM_TEXT, 'Course id and username');
     }
 }

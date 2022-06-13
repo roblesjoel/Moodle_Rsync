@@ -98,6 +98,13 @@ $functions = array(
         'description' => 'Allows you to remove all sections from the course',
         'type'        => 'write',
     ),
+    'local_rsync_copy_module' => array(
+        'classname'   => 'local_rsync_section',
+        'methodname'  => 'copy_module',
+        'classpath'   => 'local/rsync/section.php',
+        'description' => 'Allows you to remove all sections from the course',
+        'type'        => 'write',
+    ),
     'local_rsync_change_course_visibility' => array(
         'classname'   => 'local_rsync_course',
         'methodname'  => 'change_course_visibility',
@@ -121,7 +128,7 @@ $services = array(
             'local_rsync_remove_file_from_section', 'local_rsync_rename_section', 'local_rsync_remove_section',
             'local_rsync_set_file_visibility', 'local_rsync_remove_all_files_from_section', 'local_rsync_change_course_visibility',
             'local_rsync_move_file_to_other_section', 'local_rsync_move_all_modules_to_other_section', 'local_rsync_copy_course',
-            'local_rsync_remove_all_sections'),
+            'local_rsync_remove_all_sections', 'local_rsync_copy_module'),
         'restrictedusers' => 0,
         'enabled' => 1,
     )
