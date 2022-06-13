@@ -18,7 +18,8 @@
  * External Web Service Template
  *
  * @package     local_rsync
- * @copyright   2022, Joel Robles <joelgabriel.roblesgasser@students.bfh.ch> Vithursan Thayananthan <vithursan.thayananthan@students.bfh.ch>
+ * @copyright   2022, Joel Robles <joelgabriel.roblesgasser@students.bfh.ch>
+ *              Vithursan Thayananthan <vithursan.thayananthan@students.bfh.ch>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -43,7 +44,7 @@ class local_rsync_course extends external_api {
      * Returns description of method parameters
      * @return external_function_parameters
      */
-    public static function change_course_visibility_parameters(){
+    public static function change_course_visibility_parameters() {
         return new external_function_parameters(
             array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
                   'visibility' => new external_value(PARAM_INT, 'Visibility to set the course', VALUE_REQUIRED)
@@ -55,7 +56,7 @@ class local_rsync_course extends external_api {
      * Returns description of method parameters
      * @return external_function_parameters
      */
-    public static function copy_course_parameters(){
+    public static function copy_course_parameters() {
         return new external_function_parameters(
             array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
                   'newcourseid' => new external_value(PARAM_INT, 'The id of the new course', VALUE_REQUIRED)
@@ -65,12 +66,12 @@ class local_rsync_course extends external_api {
 
     /**
      * Lets the user set visibility of a course
-     * 
+     *
      * @param int $courseid course id
      * @param int $visibility the visibility of the course
      * @return string A string describing the result
      */
-    public static function change_course_visibility($courseid, $visibility){
+    public static function change_course_visibility($courseid, $visibility) {
         global $USER;
 
         $params = self::validate_parameters(self::change_course_visibility_parameters(),
@@ -96,28 +97,28 @@ class local_rsync_course extends external_api {
 
         $visibilityboolean = ($visibility) ? true : false;
 
-        $visibility_long = '';
+        $visibilitytext = '';
 
-        if ($visibility == 0){
-            $visibility_long = 'hidden';
-        }
-        else{
-            $visibility_long = 'unhidden';
+        if ($visibility == 0) {
+            $visibilitytext = 'hidden';
+        } else {
+            $visibilitytext = 'unhidden';
         }
 
         course_change_visibility($courseid, $visibilityboolean);
 
-        return get_string('successmessage_course_visibility', 'local_rsync', array('visibility' => $visibility_long, 'courseid' => $courseid, 'username' => fullname($USER)));
+        return get_string('successmessage_course_visibility', 'local_rsync', array('visibility' => $visibilitytext,
+            'courseid' => $courseid, 'username' => fullname($USER)));
     }
 
     /**
      * Lets the user copy all the contents of one course into an other.
      * All the data in the new course will be deleted before the copy
-     * 
+     *
      * @param int $courseid course id
      * @param int $newcourseid id of the new course
      */
-    public static function copy_course($courseid, $newcourseid){
+    public static function copy_course($courseid, $newcourseid) {
         global $USER, $DB, $CFG;
 
         $params = self::validate_parameters(self::copy_course_parameters(),
@@ -141,9 +142,10 @@ class local_rsync_course extends external_api {
             throw new moodle_exception('cannotaddcoursemodule');
         }
 
-        //backup
+        // Backup.
         $course = $DB->get_record('course', array('id' => $courseid));
-        $bc = new backup_controller(backup::TYPE_1COURSE, $course->id, backup::FORMAT_MOODLE, backup::INTERACTIVE_YES, backup::MODE_GENERAL, $USER->id);
+        $bc = new backup_controller(backup::TYPE_1COURSE, $course->id, backup::FORMAT_MOODLE, backup::INTERACTIVE_YES,
+            backup::MODE_GENERAL, $USER->id);
 
         $format = $bc->get_format();
         $type = $bc->get_type();
@@ -169,7 +171,7 @@ class local_rsync_course extends external_api {
 
         $bc->destroy();
 
-        //restore
+        // Restore.
         $backupdir = "restore_" . uniqid();
         $path = $CFG->tempdir . DIRECTORY_SEPARATOR . "backup" . DIRECTORY_SEPARATOR . $backupdir;
 
@@ -177,18 +179,19 @@ class local_rsync_course extends external_api {
         $fp->extract_to_pathname($filepath, $path);
 
         try {
-            $rc = new restore_controller($backupdir, $newcourseid, backup::INTERACTIVE_NO, backup::MODE_GENERAL, $USER->id, backup::TARGET_EXISTING_DELETING);
+            $rc = new restore_controller($backupdir, $newcourseid, backup::INTERACTIVE_NO, backup::MODE_GENERAL, $USER->id,
+                backup::TARGET_EXISTING_DELETING);
             $rc->execute_precheck();
             $rc->execute_plan();
             $rc->destroy();
 
         } catch (Exception $e) {
             fulldelete($path);
-            print_error('generalexceptionmessage', 'error', '', $e->getMessage());
             throw new moodle_exception($e->getMessage());
         }
 
-        return get_string('successmessage_course_copy', 'local_rsync', array('courseid' => $courseid, 'newcourseid' => $newcourseid, 'username' => fullname($USER)));
+        return get_string('successmessage_course_copy', 'local_rsync', array('courseid' => $courseid,
+            'newcourseid' => $newcourseid, 'username' => fullname($USER)));
     }
 
     /**
