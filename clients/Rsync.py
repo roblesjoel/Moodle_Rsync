@@ -3,7 +3,7 @@ from optparse import OptionParser
 from tkinter.messagebox import NO
 import requests
 url = 'http://192.168.64.3/moodle/webservice/rest/server.php'
-wstoken = '18ca69e1f635e64e104a24353f060780'
+wstoken = 'f0706afc83a345a071d357caaf06e376'
 error = 'ERRORCODE'
 
 # usage = "usage: %prog [options] arg1 arg2"
@@ -30,7 +30,8 @@ parser.add_option("-s", "--section", dest="section", type="string", help=section
 # Remove all from section: rma,courseid,sectionnumber -> rma,2,2
 # Move to other section: mv,courseid,sectionnumber,targetsectionnumber,modulename -> mv,2,2,3,test.pdf
 # Move all to other section: mva,courseid,sectionnumber,targetsectionumber -> mva,2,2,3
-modulehelp = 'Command to change a module. Visibility: v,courseid,sectionnumer,visibility,modulename -> v,2,2,test.pdf,1. Remove from section: rm,courseid,sectionnumber,modulename -> rm,2,2,test.pdf. Remove all from section: rma,courseid,sectionnumber -> rma,2,2. Move to other section: mv,courseid,sectionnumber,targetsectionnumber,modulename -> mv,2,2,3,test.pdf. Move all to other section: mva,courseid,sectionnumber,targetsectionumber -> mva,2,2,3'
+# Duplicate module: mcp,courseid,sectionnunber,targetsectionumber,modulename -> mva,2,2,3,test.pdf
+modulehelp = 'Command to change a module. Visibility: v,courseid,sectionnumer,visibility,modulename -> v,2,2,test.pdf,1. Remove from section: rm,courseid,sectionnumber,modulename -> rm,2,2,test.pdf. Remove all from section: rma,courseid,sectionnumber -> rma,2,2. Move to other section: mv,courseid,sectionnumber,targetsectionnumber,modulename -> mv,2,2,3,test.pdf. Move all to other section: mva,courseid,sectionnumber,targetsectionumber -> mva,2,2,3. Duplicate module: mcp,courseid,sectionnunber,targetsectionumber,modulename -> mva,2,2,3,test.pdf.'
 parser.add_option("-m", "--module", dest="module", type="string", help=modulehelp)
 
 # wstoken -t
@@ -41,9 +42,9 @@ parser.add_option("-u", "--url", dest="host", type="string", help="Command to ch
 
 (options, args) = parser.parse_args()
 
-commandlist = ['cv', 'ccp', 'sv', 'srn', 'srm', 'srma', 'mv', 'mrm', 'mrma', 'mmv', 'mmva', 'q']
+commandlist = ['cv', 'ccp', 'sv', 'srn', 'srm', 'srma', 'mv', 'mrm', 'mrma', 'mmv', 'mmva', 'mcp', 'q']
 commandlistText = ['Change the visibility of a course', 'Copy a course to an other (removes target course content)', 'Change the visibility of a section', 'Rename target section', 'Remove target section',
-                   'Remove all sections from course', 'Change the visibility of a module', 'Remove module from section', 'Remove all modules from section', 'Move module to other section', 'Move all modules from a section to an other', 'Quit Moodle rsync']
+                   'Remove all sections from course', 'Change the visibility of a module', 'Remove module from section', 'Remove all modules from section', 'Move module to other section', 'Move all modules from a section to an other', 'Duplicates a module an puts it in the target section', 'Quit Moodle rsync']
 
 
 def printerror(errordata):
@@ -233,6 +234,21 @@ def remove_all_sections(courseid):
     return 0
 
 
+def copy_module(courseid, sectionnumber, targetsectionnumber, modulename):
+    # curl -d 'wstoken=f0706afc83a345a071d357caaf06e376' -d 'wsfunction=local_rsync_copy_module' -d 'courseid=4' -d 'sectionnumber=1' -d 'targetsectionnumber=10' -d 'modulename=test2.pdf' http://192.168.64.3/moodle/webservice/rest/server.php
+    data = {'wstoken': wstoken, 'wsfunction': 'local_rsync_copy_module',
+            'courseid': courseid, 'sectionnumber': sectionnumber, 'targetsectionnumber': targetsectionnumber, 'modulename': modulename}
+    response = requests.post(url, data=data)
+    responsedata = response.text
+
+    if(error in responsedata):
+        printerror(responsedata)
+        return 1
+
+    printsuccess(responsedata)
+    return 0
+
+
 def upload_file():
     return
 
@@ -315,6 +331,12 @@ if(options.course == options.section == options.module is None):
                 sectionnumber = input('Enter the number of the section: ')
                 targetsectionumber = input('Enter the number of the target section: ')
                 move_all_modules_to_other_section(courseid, sectionnumber, targetsectionumber)
+            elif(chosencommand == 'mcp'):
+                courseid = input('Enter the id of the course: ')
+                sectionnumber = input('Enter the number of the section: ')
+                targetsectionumber = input('Enter the number of the target section: ')
+                modulename = input('Enter the name of the module: ')
+                copy_module(courseid, sectionnumber, targetsectionumber, modulename)
         else:
             print('Command not found! Please try again')
 
@@ -370,4 +392,6 @@ if(moduleoptions is not None):
         if(infos[0] == 'mv'):
             move_module_to_other_section(infos[1], infos[2], infos[3], infos[4])
         if(infos[0] == 'mva'):
-            copy_course(infos[1], infos[2])
+            move_all_modules_to_other_section(infos[1], infos[2], infos[3])
+        if(infos[0] == 'cp'):
+            copy_module(infos[1], infos[2], infos[3], infos[4])
