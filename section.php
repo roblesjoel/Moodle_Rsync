@@ -617,7 +617,7 @@ class local_rsync_section extends external_api {
 
     /**
      * Lets the user copy a module and insert it into section
-     * 
+     *
      * @param int $courseid courseid
      * @param int $sectionumber section number
      * @param int $targetsectionumber target section number
@@ -652,7 +652,7 @@ class local_rsync_section extends external_api {
         }
 
         $course = $DB->get_record('course', array('id' => $courseid));
-        if($course == null) {
+        if ($course == null) {
             throw new moodle_exception('coursenotfound');
         }
 
