@@ -102,7 +102,7 @@ $functions = array(
         'classname'   => 'local_rsync_section',
         'methodname'  => 'copy_module',
         'classpath'   => 'local/rsync/section.php',
-        'description' => 'Allows you to remove all sections from the course',
+        'description' => 'Allows you to copy a module and place it in a section',
         'type'        => 'write',
     ),
     'local_rsync_change_course_visibility' => array(

@@ -634,6 +634,7 @@ class local_rsync_section extends external_api {
     public static function copy_module($courseid, $sectionnumber, $targetsectionnumber, $modulename) {
         global $USER, $DB;
 
+        // Check parameters
         $params = self::validate_parameters(self::copy_module_parameters(),
         array('courseid' => $courseid,
         'sectionnumber' => $sectionnumber,
@@ -662,27 +663,26 @@ class local_rsync_section extends external_api {
             throw new moodle_exception('coursenotfound');
         }
 
+        // Get all modules of course
         $modules = get_array_of_activities($courseid);
-        $duplicatedmodule = null;
 
+        // Loop through them
         foreach ($modules as $module) {
+            // If module section and name is the same a s given
             if ($module->name == $modulename && $module->section == $sectionnumber) {
+                // create a backup
                 $bc = new backup_controller(backup::TYPE_1ACTIVITY, $module->cm, backup::FORMAT_MOODLE, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id);
-                $backupid       = $bc->get_backupid();
-                $backupbasepath = $bc->get_plan()->get_basepath();
+                $backupid       = $bc->get_backupid();;
                 $bc->execute_plan();
-                $format = $bc->get_format();
-                /*$type = $bc->get_type();
-                $id = $bc->get_id();
-                $users = $bc->get_plan()->get_setting('users')->get_value();
-                $anonymised = $bc->get_plan()->get_setting('anonymize')->get_value();
-                $filename = backup_plan_dbops::get_default_backup_filename($format, $type, $id, $users, $anonymised);
-                $bc->get_plan()->get_setting('filename')->set_value($filename);*/
                 $bc->destroy();
+
+                // and restore it.
                 $rc = new restore_controller($backupid, $courseid, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id, backup::TARGET_CURRENT_ADDING);
-                $cmcontext = context_module::instance($module->id);
+                $cmcontext = context_module::instance($module->cm);
                 $rc->execute_precheck();
                 $rc->execute_plan();
+
+                // Get the new module id
                 $newcmid = null;
                 $tasks = $rc->get_plan()->get_tasks();
                 foreach ($tasks as $task) {
@@ -695,22 +695,33 @@ class local_rsync_section extends external_api {
                 }
                 $rc->destroy();
                 
+                // If no module is found, throw exception
                 if(!$newcmid) {
                     throw new moodle_exception('newmodulenotfound');
                 }
 
-                $newcm = get_coursemodule_from_id($module->mod, $newcmid, $module->course);
-                // Add ' (copy)' to duplicates. Note we don't cleanup or validate lengths here. It comes
-                // from original name that was valid, so the copy should be too.
-        
-                $section = $DB->get_record('course_sections', array('id' => $targetsectionnumber, 'course' => $module->course));
-                moveto_module($newcm, $section);
+                // Get module info of course
+                $coursemodinfo = get_fast_modinfo($courseid, 0, false);
+                // Get the new module
+                $mod = $coursemodinfo->get_cm($newcmid);
+                // and get info of the target section
+                $sectioninfo = $coursemodinfo->get_section_info($targetsectionnumber);
 
+                // If that section doesn't exist, throw error
+                if(!$sectioninfo) {
+                    throw new moodle_exception('targetsectionnotfound');
+                }
+
+                // Else move new module to target section and leave the loop
+                moveto_module($mod, $sectioninfo);
                 break;
             }
         }
 
-        return 'should work';
+        // Return the success message
+        return get_string('successmessage_copy_module', 'local_rsync',
+            array('modulename' => $modulename, 'section' => $sectionnumber, 'targetsection' => $targetsectionnumber, 'courseid' => $courseid,
+                'username' => fullname($USER)));
     }
 
     /**
