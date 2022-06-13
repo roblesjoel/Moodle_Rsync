@@ -224,15 +224,14 @@ class local_rsync_section extends external_api {
      * @param int $sectionnumber section number
      * @param string $filename the name of the file to be removed
      * @return string A string describing the result
-     * @
      */
     public static function remove_file_from_section($courseid, $sectionnumber, $filename) {
         global $USER;
 
         $params = self::validate_parameters(self::remove_file_from_section_parameters(),
-        array('courseid' => $courseid,
-            'sectionnumber' => $sectionnumber,
-            'filename' => $filename));
+            array('courseid' => $courseid,
+                'sectionnumber' => $sectionnumber,
+                'filename' => $filename));
 
         // Context validation.
         $context = \context_user::instance($USER->id);
@@ -621,9 +620,10 @@ class local_rsync_section extends external_api {
     public static function copy_module($courseid, $sectionnumber, $targetsectionnumber, $modulename) {
         global $USER, $DB;
 
-        // Check parameters
+        // Check parameters.
         $params = self::validate_parameters(self::copy_module_parameters(),
-        array('courseid' => $courseid,'sectionnumber' => $sectionnumber,'targetsectionnumber' => $targetsectionnumber,'modulename' => $modulename));
+        array('courseid' => $courseid, 'sectionnumber' => $sectionnumber,
+              'targetsectionnumber' => $targetsectionnumber, 'modulename' => $modulename));
 
         // Context validation.
         $context = \context_user::instance($USER->id);
@@ -643,7 +643,7 @@ class local_rsync_section extends external_api {
         }
 
         $course = $DB->get_record('course', array('id' => $courseid));
-        if($course == null){
+        if($course == null {
             throw new moodle_exception('coursenotfound');
         }
 
@@ -655,13 +655,15 @@ class local_rsync_section extends external_api {
             // If module section and name is the same as given.
             if ($module->name == $modulename && $module->section == $sectionnumber) {
                 // Create a backup.
-                $bc = new backup_controller(backup::TYPE_1ACTIVITY, $module->cm, backup::FORMAT_MOODLE, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id);
+                $bc = new backup_controller(backup::TYPE_1ACTIVITY, $module->cm,
+                          backup::FORMAT_MOODLE, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id);
                 $backupid       = $bc->get_backupid();;
                 $bc->execute_plan();
                 $bc->destroy();
 
                 // And restore it.
-                $rc = new restore_controller($backupid, $courseid, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id, backup::TARGET_CURRENT_ADDING);
+                $rc = new restore_controller($backupid, $courseid, backup::INTERACTIVE_NO,
+                            backup::MODE_IMPORT, $USER->id, backup::TARGET_CURRENT_ADDING);
                 $cmcontext = context_module::instance($module->cm);
                 $rc->execute_precheck();
                 $rc->execute_plan();
@@ -678,7 +680,7 @@ class local_rsync_section extends external_api {
                     }
                 }
                 $rc->destroy();
-                
+
                 // If no module is found, throw exception.
                 if(!$newcmid) {
                     throw new moodle_exception('newmodulenotfound');
@@ -704,8 +706,9 @@ class local_rsync_section extends external_api {
 
         // Return the success message.
         return get_string('successmessage_copy_module', 'local_rsync',
-            array('modulename' => $modulename, 'section' => $sectionnumber, 'targetsection' => $targetsectionnumber, 'courseid' => $courseid,
-                'username' => fullname($USER)));
+            array('modulename' => $modulename, 'section' => $sectionnumber,
+                  'targetsection' => $targetsectionnumber, 'courseid' => $courseid,
+                  'username' => fullname($USER)));
     }
 
     /**
