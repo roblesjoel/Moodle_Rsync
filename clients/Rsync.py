@@ -33,8 +33,8 @@ parser.add_option("-s", "--section", dest="section", type="string", help=section
 # Remove all from section: rma,courseid,sectionnumber -> rma,2,2
 # Move to other section: mv,courseid,sectionnumber,targetsectionnumber,modulename -> mv,2,2,3,test.pdf
 # Move all to other section: mva,courseid,sectionnumber,targetsectionumber -> mva,2,2,3
-# Duplicate module: mcp,courseid,sectionnunber,targetsectionumber,modulename -> mva,2,2,3,test.pdf
-modulehelp = 'Command to change a module. Visibility: v,courseid,sectionnumer,visibility,modulename -> v,2,2,test.pdf,1. Remove from section: rm,courseid,sectionnumber,modulename -> rm,2,2,test.pdf. Remove all from section: rma,courseid,sectionnumber -> rma,2,2. Move to other section: mv,courseid,sectionnumber,targetsectionnumber,modulename -> mv,2,2,3,test.pdf. Move all to other section: mva,courseid,sectionnumber,targetsectionumber -> mva,2,2,3. Duplicate module: mcp,courseid,sectionnunber,targetsectionumber,modulename -> mva,2,2,3,test.pdf.'
+# Duplicate module: cp,courseid,sectionnunber,targetsectionumber,modulename -> cp,2,2,3,test.pdf
+modulehelp = 'Command to change a module. Visibility: v,courseid,sectionnumer,visibility,modulename -> v,2,2,test.pdf,1. Remove from section: rm,courseid,sectionnumber,modulename -> rm,2,2,test.pdf. Remove all from section: rma,courseid,sectionnumber -> rma,2,2. Move to other section: mv,courseid,sectionnumber,targetsectionnumber,modulename -> mv,2,2,3,test.pdf. Move all to other section: mva,courseid,sectionnumber,targetsectionumber -> mva,2,2,3. Duplicate module: cp,courseid,sectionnunber,targetsectionumber,modulename -> cp,2,2,3,test.pdf.'
 parser.add_option("-m", "--module", dest="module", type="string", help=modulehelp)
 
 # push -p
@@ -50,7 +50,7 @@ parser.add_option("-u", "--url", dest="host", type="string", help="Command to ch
 
 (options, args) = parser.parse_args()
 
-commandlist = ['cv', 'ccp', 'sv', 'srn', 'srm', 'srma', 'mv', 'mrm', 'mrma', 'mmv', 'mmva', 'mcp', 'fp', 'q']
+commandlist = ['cv', 'ccp', 'sv', 'srn', 'srm', 'srma', 'mv', 'mrm', 'mrma', 'mmv', 'mmva', 'mcp', 'pf', 'q']
 commandlistText = ['Change the visibility of a course', 'Copy a course to an other (removes target course content)', 'Change the visibility of a section', 'Rename target section', 'Remove target section', 'Remove all sections from course', 'Change the visibility of a module',
                    'Remove module from section', 'Remove all modules from section', 'Move module to other section', 'Move all modules from a section to an other', 'Duplicates a module an puts it in the target section', 'Pushes a file to a given course and section', 'Quit Moodle rsync']
 
@@ -283,14 +283,12 @@ def upload_file(filename, filepath, courseid, sectionumber, displayname):
     printsuccess(responsedata)
     return 0
 
-    return
-
 
 def upload_folder():
     return
 
 
-if(options.course == options.section == options.module is None):
+if(options.course == options.section == options.module == options.push is None):
     print('Welcome to Moodle Rsync!')
     token = input('Enter a custum token (leave blank for default): ')
     hosturl = input('Enter a custum url (leave blank for default): ')
@@ -370,7 +368,7 @@ if(options.course == options.section == options.module is None):
                 targetsectionumber = input('Enter the number of the target section: ')
                 modulename = input('Enter the name of the module: ')
                 copy_module(courseid, sectionnumber, targetsectionumber, modulename)
-            elif(chosencommand == 'fp'):
+            elif(chosencommand == 'pf'):
                 filename = input('Enter the name of the file: ')
                 filepath = input('Enter the path of the file: ')
                 courseid = input('Enter the id of the target course: ')
@@ -384,6 +382,7 @@ if(options.course == options.section == options.module is None):
 courseoptions = options.course
 sectionoptions = options.section
 moduleoptions = options.module
+pushoptions = options.push
 
 token = options.token
 hosturl = options.host
@@ -392,31 +391,13 @@ if(token is not None):
 if(hosturl is not None):
     url = hosturl
 
-
-if(courseoptions is not None):
-    # split at -
-    optionssplits = courseoptions.split('-')
+if(pushoptions is not None):
+    optionssplits = pushoptions.split('-')
 
     for optionsplit in optionssplits:
         infos = optionsplit.split(',')
-        if(infos[0] == 'cp'):
-            copy_course(infos[1], infos[2])
-        if(infos[0] == 'v'):
-            set_course_visibility(infos[1], infos[2])
-if(sectionoptions is not None):
-    # split at -
-    optionssplits = sectionoptions.split('-')
-
-    for optionsplit in optionssplits:
-        infos = optionsplit.split(',')
-        if(infos[0] == 'v'):
-            set_section_visibility(infos[1], infos[2], infos[3])
-        if(infos[0] == 'rn'):
-            rename_section(infos[1], infos[2], infos[3])
-        if(infos[0] == 'rm'):
-            remove_section(infos[1], infos[2])
-        if(infos[0] == 'rma'):
-            remove_all_sections(infos[1])
+        if(infos[0] == 'f'):
+            upload_file(infos[1], infos[2], infos[3], infos[4], infos[5])
 if(moduleoptions is not None):
     # split at -
     optionssplits = moduleoptions.split('-')
@@ -435,3 +416,27 @@ if(moduleoptions is not None):
             move_all_modules_to_other_section(infos[1], infos[2], infos[3])
         if(infos[0] == 'cp'):
             copy_module(infos[1], infos[2], infos[3], infos[4])
+if(sectionoptions is not None):
+    # split at -
+    optionssplits = sectionoptions.split('-')
+
+    for optionsplit in optionssplits:
+        infos = optionsplit.split(',')
+        if(infos[0] == 'v'):
+            set_section_visibility(infos[1], infos[2], infos[3])
+        if(infos[0] == 'rn'):
+            rename_section(infos[1], infos[2], infos[3])
+        if(infos[0] == 'rm'):
+            remove_section(infos[1], infos[2])
+        if(infos[0] == 'rma'):
+            remove_all_sections(infos[1])
+if(courseoptions is not None):
+    # split at -
+    optionssplits = courseoptions.split('-')
+
+    for optionsplit in optionssplits:
+        infos = optionsplit.split(',')
+        if(infos[0] == 'cp'):
+            copy_course(infos[1], infos[2])
+        if(infos[0] == 'v'):
+            set_course_visibility(infos[1], infos[2])
