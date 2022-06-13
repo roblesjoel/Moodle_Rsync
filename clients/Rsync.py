@@ -2,7 +2,10 @@ from posixpath import split
 from optparse import OptionParser
 from tkinter.messagebox import NO
 import requests
+import json
+
 url = 'http://192.168.64.3/moodle/webservice/rest/server.php'
+web_service_token = 'f039dbb7831dbede493ce6f18065ed55'
 wstoken = 'f0706afc83a345a071d357caaf06e376'
 error = 'ERRORCODE'
 
@@ -34,6 +37,11 @@ parser.add_option("-s", "--section", dest="section", type="string", help=section
 modulehelp = 'Command to change a module. Visibility: v,courseid,sectionnumer,visibility,modulename -> v,2,2,test.pdf,1. Remove from section: rm,courseid,sectionnumber,modulename -> rm,2,2,test.pdf. Remove all from section: rma,courseid,sectionnumber -> rma,2,2. Move to other section: mv,courseid,sectionnumber,targetsectionnumber,modulename -> mv,2,2,3,test.pdf. Move all to other section: mva,courseid,sectionnumber,targetsectionumber -> mva,2,2,3. Duplicate module: mcp,courseid,sectionnunber,targetsectionumber,modulename -> mva,2,2,3,test.pdf.'
 parser.add_option("-m", "--module", dest="module", type="string", help=modulehelp)
 
+# push -p
+# File: f,filepath,filename,courseid,sectionnumber,displayname -> f,files/test.pdf,test.pdf,2,2,curl.txt
+pushhelp = 'Command to push something. File: f,filepath,filename,courseid,sectionnumber,displayname -> f,files/test.pdf,test.pdf,2,2,curl.txt'
+parser.add_option("-p", "--push", dest="push", type="string", help=pushhelp)
+
 # wstoken -t
 parser.add_option("-t", "--token", dest="token", type="string", help="Command to change the default token.")
 
@@ -42,9 +50,9 @@ parser.add_option("-u", "--url", dest="host", type="string", help="Command to ch
 
 (options, args) = parser.parse_args()
 
-commandlist = ['cv', 'ccp', 'sv', 'srn', 'srm', 'srma', 'mv', 'mrm', 'mrma', 'mmv', 'mmva', 'mcp', 'q']
-commandlistText = ['Change the visibility of a course', 'Copy a course to an other (removes target course content)', 'Change the visibility of a section', 'Rename target section', 'Remove target section',
-                   'Remove all sections from course', 'Change the visibility of a module', 'Remove module from section', 'Remove all modules from section', 'Move module to other section', 'Move all modules from a section to an other', 'Duplicates a module an puts it in the target section', 'Quit Moodle rsync']
+commandlist = ['cv', 'ccp', 'sv', 'srn', 'srm', 'srma', 'mv', 'mrm', 'mrma', 'mmv', 'mmva', 'mcp', 'fp', 'q']
+commandlistText = ['Change the visibility of a course', 'Copy a course to an other (removes target course content)', 'Change the visibility of a section', 'Rename target section', 'Remove target section', 'Remove all sections from course', 'Change the visibility of a module',
+                   'Remove module from section', 'Remove all modules from section', 'Move module to other section', 'Move all modules from a section to an other', 'Duplicates a module an puts it in the target section', 'Pushes a file to a given course and section', 'Quit Moodle rsync']
 
 
 def printerror(errordata):
@@ -249,7 +257,32 @@ def copy_module(courseid, sectionnumber, targetsectionnumber, modulename):
     return 0
 
 
-def upload_file():
+def upload_file(filename, filepath, courseid, sectionumber, displayname):
+    uploadurl = 'http://192.168.64.3/moodle/webservice/upload.php?token={}'.format(web_service_token)
+    files = {'file_1': (filename, open(filepath, 'rb'))}
+    response = requests.post(uploadurl, files=files)
+    responsedata = json.loads(response.text)[0]
+    itemid = responsedata["itemid"]
+
+    data = {'wstoken': web_service_token, 'moodlewsrestformat': 'json',
+            'wsfunction': 'core_user_add_user_private_files', 'draftid': itemid}
+    response = requests.post(url, data=data)
+    responsedata = response.text
+
+    # curl - d 'wstoken=18ca69e1f635e64e104a24353f060780' - d 'wsfunction=local_rsync_create_file_resource' - d 'filename=raport.pdf' - d 'courseid=2' - d 'sectionnumber=1' - d 'displayname=test2.pdf' http: // 192.168.64.3/moodle/webservice/rest/server.php
+
+    data = {'wstoken': wstoken, 'wsfunction': 'local_rsync_create_file_resource', 'filename': filename,
+            'courseid': courseid, 'sectionnumber': sectionumber, 'displayname': displayname}
+    response = requests.post(url, data=data)
+    responsedata = response.text
+
+    if(error in responsedata):
+        printerror(responsedata)
+        return 1
+
+    printsuccess(responsedata)
+    return 0
+
     return
 
 
@@ -337,6 +370,13 @@ if(options.course == options.section == options.module is None):
                 targetsectionumber = input('Enter the number of the target section: ')
                 modulename = input('Enter the name of the module: ')
                 copy_module(courseid, sectionnumber, targetsectionumber, modulename)
+            elif(chosencommand == 'fp'):
+                filename = input('Enter the name of the file: ')
+                filepath = input('Enter the path of the file: ')
+                courseid = input('Enter the id of the target course: ')
+                sectionnumber = input('Enter the sectionnumber where the file will be placed: ')
+                displayname = input('Enter how the file should be called: ')
+                upload_file(filename, filepath, courseid, sectionnumber, displayname)
         else:
             print('Command not found! Please try again')
 
