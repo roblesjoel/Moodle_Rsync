@@ -176,6 +176,7 @@ class local_rsync_section extends external_api {
      * @param int $sectionnumber section number
      * @param int $visibility visibility of the section. 0 = hidden, 1 = shown
      * @return string A string describing the result.
+     * @throws moodle_exception to be explained
      */
     public static function set_section_visibilty($courseid, $sectionnumber, $visibility) {
         global $USER;
@@ -224,6 +225,7 @@ class local_rsync_section extends external_api {
      * @param int $sectionnumber section number
      * @param string $filename the name of the file to be removed
      * @return string A string describing the result
+     * @throws moodle_exception to be explained
      */
     public static function remove_file_from_section($courseid, $sectionnumber, $filename) {
         global $USER;
@@ -269,6 +271,7 @@ class local_rsync_section extends external_api {
      * @param int $sectionnumber section number
      * @param string $sectionname the new name of the section
      * @return string A string describing the result
+     * @throws moodle_exception to be explained
      */
     public static function rename_section($courseid, $sectionnumber, $sectionname) {
         global $USER, $DB;
@@ -310,6 +313,7 @@ class local_rsync_section extends external_api {
      * @param int $sectionnumber section number
      * @param string $sectionname the new name of the section
      * @return string A string describing the result
+     * @throws moodle_exception to be explained
      */
     public static function remove_section($courseid, $sectionnumber) {
         global $USER, $DB;
@@ -355,6 +359,7 @@ class local_rsync_section extends external_api {
      *
      * @param int $course id
      * @return string A string describing the result
+     * @throws moodle_exception to be explained
      */
     public static function remove_all_sections($courseid) {
         global $USER;
@@ -402,6 +407,7 @@ class local_rsync_section extends external_api {
      * @param string $sectionname the new name of the section
      * @param int $visiblity the visiblity of the file
      * @return string A string describing the result
+     * @throws moodle_exception to be explained
      */
     public static function set_file_visibility($courseid, $sectionnumber, $filename, $visibility) {
         global $USER;
@@ -463,7 +469,8 @@ class local_rsync_section extends external_api {
      *
      * @param int $courseid course id
      * @param int $sectionnumber section number
-     * @return string A string describing the result
+     * @return string A string describing the result$
+     * @throws moodle_exception to be explained
      */
     public static function remove_all_files_from_section($courseid, $sectionnumber) {
         global $USER;
@@ -509,6 +516,7 @@ class local_rsync_section extends external_api {
      * @param int $targetsectionnumber target section number
      * @param string $modulename name of the module to be moved
      * @return string A string describing the result
+     * @throws moodle_exception to be explained
      */
     public static function move_file_to_other_section($courseid, $sectionnumber, $targetsectionnumber, $modulename) {
         global $USER;
@@ -564,6 +572,7 @@ class local_rsync_section extends external_api {
      * @param int $sectionumber section number
      * @param int $targetsectionnumber target section number
      * @return string A string describing the result
+     * @throws moodle_exception to be explained
      */
     public static function move_all_modules_to_other_section($courseid, $sectionnumber, $targetsectionnumber) {
         global $USER;
@@ -607,15 +616,15 @@ class local_rsync_section extends external_api {
     }
 
     /**
-     * Lets the user copy a module and insert it into a section
+     * Lets the user copy a module and insert it into section
      * 
-     * @param int $courseid course id
-     * @param int $sectionnumber section number
-     * @param int $targetsectionnumber target section number
+     * @param int $courseid courseid
+     * @param int $sectionumber section number
+     * @param int $targetsectionumber target section number
      * @param string $modulename name of the module to be copied
      * @return string A string describing the result
-     * @throws moodle_exception if the course, the section, the target section or the module doesnt exist.
-     * @throws moodle_exception if the user isn't allowed to perfom the action
+     * @throws moodle_exception if the course, the section, the target section or the module doesn't exist
+     * @throws moodle_exception if the user isn't allowed to perform the action
      */
     public static function copy_module($courseid, $sectionnumber, $targetsectionnumber, $modulename) {
         global $USER, $DB;
@@ -643,7 +652,7 @@ class local_rsync_section extends external_api {
         }
 
         $course = $DB->get_record('course', array('id' => $courseid));
-        if($course == null {
+        if($course == null) {
             throw new moodle_exception('coursenotfound');
         }
 
@@ -682,7 +691,7 @@ class local_rsync_section extends external_api {
                 $rc->destroy();
 
                 // If no module is found, throw exception.
-                if(!$newcmid) {
+                if (!$newcmid) {
                     throw new moodle_exception('newmodulenotfound');
                 }
 
@@ -694,7 +703,7 @@ class local_rsync_section extends external_api {
                 $sectioninfo = $coursemodinfo->get_section_info($targetsectionnumber);
 
                 // If that section doesn't exist, throw error.
-                if(!$sectioninfo) {
+                if (!$sectioninfo) {
                     throw new moodle_exception('targetsectionnotfound');
                 }
 
