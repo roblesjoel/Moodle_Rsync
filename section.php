@@ -221,9 +221,9 @@ class local_rsync_section extends external_api {
     /**
      * Lets the user remove a file from a section
      *
-     * @param int $courseud course id
-     * @param int $sectionnumber section number
-     * @param string $filename the name of the file to be removed
+     * @param int     $courseud course id
+     * @param int     $sectionnumber section number
+     * @param string  $filename the name of the file to be removed
      * @return string A string describing the result
      * @throws moodle_exception to be explained
      */
