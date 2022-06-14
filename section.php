@@ -172,11 +172,10 @@ class local_rsync_section extends external_api {
     /**
      * Lets the user set the visibilty of a section
      *
-     * @param int $courseid course id
-     * @param int $sectionnumber section number
-     * @param int $visibility visibility of the section. 0 = hidden, 1 = shown
+     * @param int     $courseid course id
+     * @param int     $sectionnumber section number
+     * @param int     $visibility visibility of the section. 0 = hidden, 1 = shown
      * @return string A string describing the result.
-     * @throws moodle_exception to be explained
      */
     public static function set_section_visibilty($courseid, $sectionnumber, $visibility) {
         global $USER;
@@ -225,7 +224,6 @@ class local_rsync_section extends external_api {
      * @param int     $sectionnumber section number
      * @param string  $filename the name of the file to be removed
      * @return string A string describing the result
-     * @throws moodle_exception to be explained
      */
     public static function remove_file_from_section($courseid, $sectionnumber, $filename) {
         global $USER;
