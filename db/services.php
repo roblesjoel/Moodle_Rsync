@@ -31,7 +31,7 @@ $functions = array(
         'classname'   => 'local_rsync_external',
         'methodname'  => 'create_file_resource',
         'classpath'   => 'local/rsync/externallib.php',
-        'description' => 'Allows to create file resources in sections of a Moodle course with files in the \'Private files\' ' .
+        'description' => 'Allows you to create file resources in sections of a Moodle course with files in the \'Private files\' ' .
                          'area, and other things, too',
         'type'        => 'write',
     ),
@@ -117,7 +117,7 @@ $functions = array(
         'classname'   => 'local_rsync_course',
         'methodname'  => 'change_course_visibility',
         'classpath'   => 'local/rsync/course.php',
-        'description' => 'Allows you the set the visibility of a course',
+        'description' => 'Allows you to set the visibility of a course',
         'type'        => 'write',
     ),
     'local_rsync_copy_course' => array(
@@ -131,7 +131,7 @@ $functions = array(
 
 // We define the services to install as pre-build services. A pre-build service is not editable by administrator.
 $services = array(
-    'rsync fucntionalities' => array(
+    'rsync functionalities' => array(
         'functions' => array ('local_rsync_create_file_resource', 'local_rsync_set_section_visibility',
             'local_rsync_remove_file_from_section', 'local_rsync_rename_section', 'local_rsync_remove_section',
             'local_rsync_set_file_visibility', 'local_rsync_remove_all_files_from_section', 'local_rsync_change_course_visibility',
