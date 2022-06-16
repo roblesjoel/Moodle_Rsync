@@ -302,7 +302,7 @@ def upload_folder(courseid, directory_path):
 
     splitdata = responsedata.split(' ')
 
-    sectionnumber = -1
+    sectionnumber = -2
     print(splitdata)
 
     for i in range(len(splitdata)):
