@@ -9,7 +9,7 @@ import json
 
 url = 'http://192.168.64.3/moodle/webservice/rest/server.php'
 web_service_token = 'f039dbb7831dbede493ce6f18065ed55'
-wstoken = '36271651ba925af6b783c8c45994dfd4'
+wstoken = '42e62ff47f4062384c7f39cad599c7ee'
 error = 'ERRORCODE'
 
 # usage = "usage: %prog [options] arg1 arg2"
@@ -37,7 +37,8 @@ parser.add_option("-s", "--section", dest="section", type="string", help=section
 # Move to other section: mv,courseid,sectionnumber,targetsectionnumber,modulename -> mv,2,2,3,test.pdf
 # Move all to other section: mva,courseid,sectionnumber,targetsectionumber -> mva,2,2,3
 # Duplicate module: cp,courseid,sectionnunber,targetsectionumber,modulename -> cp,2,2,3,test.pdf
-modulehelp = 'Command to change a module. Visibility: v,courseid,sectionnumer,visibility,modulename -> v,2,2,test.pdf,1. Remove from section: rm,courseid,sectionnumber,modulename -> rm,2,2,test.pdf. Remove all from section: rma,courseid,sectionnumber -> rma,2,2. Move to other section: mv,courseid,sectionnumber,targetsectionnumber,modulename -> mv,2,2,3,test.pdf. Move all to other section: mva,courseid,sectionnumber,targetsectionumber -> mva,2,2,3. Duplicate module: cp,courseid,sectionnunber,targetsectionumber,modulename -> cp,2,2,3,test.pdf.'
+# Copy all: cpa,coursid,sectionnumber,targetsectionnumber -> cpa,2,2,3
+modulehelp = 'Command to change a module. Visibility: v,courseid,sectionnumer,visibility,modulename -> v,2,2,test.pdf,1. Remove from section: rm,courseid,sectionnumber,modulename -> rm,2,2,test.pdf. Remove all from section: rma,courseid,sectionnumber -> rma,2,2. Move to other section: mv,courseid,sectionnumber,targetsectionnumber,modulename -> mv,2,2,3,test.pdf. Move all to other section: mva,courseid,sectionnumber,targetsectionumber -> mva,2,2,3. Duplicate module: cp,courseid,sectionnunber,targetsectionumber,modulename -> cp,2,2,3,test.pdf. Copy all: cpa,coursid,sectionnumber,targetsectionnumber -> cpa,2,2,3'
 parser.add_option("-m", "--module", dest="module", type="string", help=modulehelp)
 
 # push -p
@@ -54,9 +55,10 @@ parser.add_option("-u", "--url", dest="host", type="string", help="Command to ch
 
 (options, args) = parser.parse_args()
 
-commandlist = ['cv', 'ccp', 'sv', 'srn', 'srm', 'srma', 'mv', 'mrm', 'mrma', 'mmv', 'mmva', 'mcp', 'pf', 'pd', 'q']
+commandlist = ['cv', 'ccp', 'sv', 'srn', 'srm', 'srma', 'mv',
+               'mrm', 'mrma', 'mmv', 'mmva', 'mcp', 'mcpa', 'pf', 'pd', 'q']
 commandlistText = ['Change the visibility of a course', 'Copy a course to an other (removes target course content)', 'Change the visibility of a section', 'Rename target section', 'Remove target section', 'Remove all sections from course', 'Change the visibility of a module',
-                   'Remove module from section', 'Remove all modules from section', 'Move module to other section', 'Move all modules from a section to an other', 'Duplicates a module an puts it in the target section', 'Pushes a file to a given course and section', 'Pushes a directory into a course. Directory name = new section name.', 'Quit Moodle rsync']
+                   'Remove module from section', 'Remove all modules from section', 'Move module to other section', 'Move all modules from a section to an other', 'Duplicates a module an puts it in the target section', 'Duplicates all modules an puts them in the target section', 'Pushes a file to a given course and section', 'Pushes a directory into a course. Directory name = new section name.', 'Quit Moodle rsync']
 
 
 def printerror(errordata):
@@ -261,6 +263,21 @@ def copy_module(courseid, sectionnumber, targetsectionnumber, modulename):
     return 0
 
 
+def copy_all_modules(courseid, sectionnumber, targetsectionnumber):
+    # curl -d 'wstoken=42e62ff47f4062384c7f39cad599c7ee' -d 'wsfunction=local_rsync_copy_all_section_modules' -d 'courseid=2' -d 'sectionnumber=-2' -d 'targetsectionnumber=3' http://192.168.64.3/moodle/webservice/rest/server.php
+    data = {'wstoken': wstoken, 'wsfunction': 'local_rsync_copy_all_section_modules',
+            'courseid': courseid, 'sectionnumber': sectionnumber, 'targetsectionnumber': targetsectionnumber}
+    response = requests.post(url, data=data)
+    responsedata = response.text
+
+    if(error in responsedata):
+        printerror(responsedata)
+        return 1
+
+    printsuccess(responsedata)
+    return 0
+
+
 def upload_file(filename, filepath, courseid, sectionumber, displayname):
     uploadurl = 'http://192.168.64.3/moodle/webservice/upload.php?token={}'.format(web_service_token)
     files = {'file_1': (filename, open(filepath, 'rb'))}
@@ -400,6 +417,11 @@ if(options.course == options.section == options.module == options.push is None):
                 targetsectionumber = input('Enter the number of the target section: ')
                 modulename = input('Enter the name of the module: ')
                 copy_module(courseid, sectionnumber, targetsectionumber, modulename)
+            elif(chosencommand == 'mcpa'):
+                courseid = input('Enter the id of the course: ')
+                sectionnumber = input('Enter the number of the section: ')
+                targetsectionumber = input('Enter the number of the target section: ')
+                copy_all_modules(courseid, sectionnumber, targetsectionumber)
             elif(chosencommand == 'pf'):
                 filename = input('Enter the name of the file: ')
                 filepath = input('Enter the path of the file: ')
@@ -454,6 +476,8 @@ if(moduleoptions is not None):
             move_all_modules_to_other_section(infos[1], infos[2], infos[3])
         if(infos[0] == 'cp'):
             copy_module(infos[1], infos[2], infos[3], infos[4])
+        if(infos[0] == 'cpa'):
+            copy_module(infos[1], infos[2], infos[3])
 if(sectionoptions is not None):
     # split at -
     optionssplits = sectionoptions.split('-')

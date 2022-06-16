@@ -37,7 +37,7 @@ These are the endpoints that were introduced in this plugin.
 | local_rsync_copy_module                       | Copies a module and puts it in the specified section.                                                                        | courseid, sectionnumber, targetsectionumber, modulename  |
 | local_rsync_change_course_visibility          | Changes the visibility of a course.                                                                                          | courseid, visibility (0 or 1)                            |
 | local_rsync_copy_course                       | Copies a module into an other module. The data in the target module is overwritten.                                          | courseid, newcourseid                                    |
-| local_rsync_copy_all_section_modules          | Copies all modules in a section and puts it in the specified section. Still in dev.                                          |                                                          |
+| local_rsync_copy_all_section_modules          | Copies all modules in a section and puts it in the specified section.                                                        | courseid, sectionnumber, targetsectionumber              |
 | local_rsync_create_section                    | Creates a new section. Is used when a user wants to upload a whole folder, so the foldername is the name of the new section. | courseid, sectionname                                    |
 
 ## Parameter list
@@ -80,15 +80,15 @@ The script in the [clients](/clients/) folder can also be invoked with commands:
 
 Option and command list:
 
-| Options | Description          | Commands                |
-| ------- | -------------------- | ----------------------- |
-| -c      | Course options.      | v, cp                   |
-| -s      | Section options.     | v, rn, rm, rma          |
-| -m      | Module options.      | v, rm, rma, mv, mva, cp |
-| -t      | Rsync token.         |                         |
-| -u      | Host url.            |                         |
-| -p      | Push.                | f, d                    |
-| -h      | Shows the help page. |                         |
+| Options | Description          | Commands                     |
+| ------- | -------------------- | ---------------------------- |
+| -c      | Course options.      | v, cp                        |
+| -s      | Section options.     | v, rn, rm, rma               |
+| -m      | Module options.      | v, rm, rma, mv, mva, cp, cpa |
+| -t      | Rsync token.         |                              |
+| -u      | Host url.            |                              |
+| -p      | Push.                | f, d                         |
+| -h      | Shows the help page. |                              |
 
 Command description:
 
@@ -106,6 +106,7 @@ Command description:
 | -m mv            | Moves a modules from a section to an other.                                                                                      | -m mv,courseid,sectionnumber,targetsectionnumber,modulename |
 | -m mva           | Moves all modules from a section to an other.                                                                                    | -m mva,courseid,sectionnumber,targetsectionnumber           |
 | -m cp            | Copies a module from a section to a target section.                                                                              | -m cp,courseid,sectionnumber,targetsectionnumber,modulename |
+| -m cpa           | Copies all modules from a section to a target section.                                                                           | -m cpa,courseid,sectionnumber,targetsectionnumber           |
 | -p f             | Pushes a file from the local machine to a section.                                                                               | -p f,filepath,filename,courseid,sectionnumber,displayname   |
 | -p d             | Pushes a directory from the local machine to a section. The name of the directory is the name of the new section. Not recursive. | -p d,directory_path,courseid                                |
 
