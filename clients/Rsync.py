@@ -1,12 +1,15 @@
 from posixpath import split
 from optparse import OptionParser
 from tkinter.messagebox import NO
+import os
+from os import listdir
+from os.path import isfile, join
 import requests
 import json
 
 url = 'http://192.168.64.3/moodle/webservice/rest/server.php'
 web_service_token = 'f039dbb7831dbede493ce6f18065ed55'
-wstoken = 'f0706afc83a345a071d357caaf06e376'
+wstoken = '36271651ba925af6b783c8c45994dfd4'
 error = 'ERRORCODE'
 
 # usage = "usage: %prog [options] arg1 arg2"
@@ -39,7 +42,8 @@ parser.add_option("-m", "--module", dest="module", type="string", help=modulehel
 
 # push -p
 # File: f,filepath,filename,courseid,sectionnumber,displayname -> f,files/test.pdf,test.pdf,2,2,curl.txt
-pushhelp = 'Command to push something. File: f,filepath,filename,courseid,sectionnumber,displayname -> f,files/test.pdf,test.pdf,2,2,curl.txt'
+# Directory: d,directory_path,courseid -> d,files/,2
+pushhelp = 'Command to push something. File: f,filepath,filename,courseid,sectionnumber,displayname -> f,files/test.pdf,test.pdf,2,2,curl.txt. Directory: d,directory_path,courseid -> d,files/,2'
 parser.add_option("-p", "--push", dest="push", type="string", help=pushhelp)
 
 # wstoken -t
@@ -50,9 +54,9 @@ parser.add_option("-u", "--url", dest="host", type="string", help="Command to ch
 
 (options, args) = parser.parse_args()
 
-commandlist = ['cv', 'ccp', 'sv', 'srn', 'srm', 'srma', 'mv', 'mrm', 'mrma', 'mmv', 'mmva', 'mcp', 'pf', 'q']
+commandlist = ['cv', 'ccp', 'sv', 'srn', 'srm', 'srma', 'mv', 'mrm', 'mrma', 'mmv', 'mmva', 'mcp', 'pf', 'pd', 'q']
 commandlistText = ['Change the visibility of a course', 'Copy a course to an other (removes target course content)', 'Change the visibility of a section', 'Rename target section', 'Remove target section', 'Remove all sections from course', 'Change the visibility of a module',
-                   'Remove module from section', 'Remove all modules from section', 'Move module to other section', 'Move all modules from a section to an other', 'Duplicates a module an puts it in the target section', 'Pushes a file to a given course and section', 'Quit Moodle rsync']
+                   'Remove module from section', 'Remove all modules from section', 'Move module to other section', 'Move all modules from a section to an other', 'Duplicates a module an puts it in the target section', 'Pushes a file to a given course and section', 'Pushes a directory into a course. Directory name = new section name.', 'Quit Moodle rsync']
 
 
 def printerror(errordata):
@@ -284,8 +288,36 @@ def upload_file(filename, filepath, courseid, sectionumber, displayname):
     return 0
 
 
-def upload_folder():
-    return
+def upload_folder(courseid, directory_path):
+    dirname = directory_path.split('/')[-1]
+    # curl -d 'wstoken=36271651ba925af6b783c8c45994dfd4' -d 'wsfunction=local_rsync_create_section' -d 'courseid=4' -d 'sectionname=test Section' http://192.168.64.3/moodle/webservice/rest/server.php
+    data = {'wstoken': wstoken, 'wsfunction': 'local_rsync_create_section',
+            'courseid': courseid, 'sectionname': dirname}
+    response = requests.post(url, data=data)
+    responsedata = response.text
+
+    if(error in responsedata):
+        printerror(responsedata)
+        return 1
+
+    splitdata = responsedata.split(' ')
+
+    sectionnumber = -1
+    print(splitdata)
+
+    for i in range(len(splitdata)):
+        if(splitdata[i] == "number"):
+            sectionnumber = splitdata[i+1]
+            break
+
+    onlyfiles = [f for f in listdir(directory_path) if isfile(join(directory_path, f))]
+
+    for file in onlyfiles:
+        filename = file
+        filepath = os.path.join(directory_path, file)
+        upload_file(filename, filepath, courseid, sectionnumber, filename)
+
+    return 0
 
 
 if(options.course == options.section == options.module == options.push is None):
@@ -375,6 +407,10 @@ if(options.course == options.section == options.module == options.push is None):
                 sectionnumber = input('Enter the sectionnumber where the file will be placed: ')
                 displayname = input('Enter how the file should be called: ')
                 upload_file(filename, filepath, courseid, sectionnumber, displayname)
+            elif(chosencommand == 'pd'):
+                directory_path = input('Enter the path of the directory: ')
+                courseid = input('Enter the id of the target course: ')
+                upload_folder(courseid, directory_path)
         else:
             print('Command not found! Please try again')
 
@@ -398,6 +434,8 @@ if(pushoptions is not None):
         infos = optionsplit.split(',')
         if(infos[0] == 'f'):
             upload_file(infos[1], infos[2], infos[3], infos[4], infos[5])
+        if(infos[0] == 'd'):
+            upload_folder(infos[1], infos[2])
 if(moduleoptions is not None):
     # split at -
     optionssplits = moduleoptions.split('-')

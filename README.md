@@ -19,23 +19,23 @@ If you want, you can make your own scripts, so that it mimics your workflow.
 
 These are the endpoints that were introduced in this plugin.
 
-| Function name                                 | Function usage                                                                                                                             | Parameters                                               |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
-| local_rsync_create_file_resource              | Creates a file in a course. The file needs to be in the private files of the user.                                                         | filename, courseid, sectionnumber, displayname           |
-| local_rsync_set_section_visibility            | Sets the visibility of a section.                                                                                                          | courseid, sectionnumber, visibility (0 or 1)             |
-| local_rsync_remove_file_from_section          | Removes a module from a section.                                                                                                           | courseid, sectionnumber, filename                        |
-| local_rsync_rename_section                    | Renames a section.                                                                                                                         | courseid, sectionumber, sectionname                      |
-| local_rsync_remove_section                    | Removes a section.                                                                                                                         | courseid, sectionnumber                                  |
-| local_rsync_set_file_visibility               | Sets the visibility of a module.                                                                                                           | courseid, sectionumber, filename, visibility (0 or 1)    |
-| local_rsync_remove_all_files_from_section     | Removes all modules from a section.                                                                                                        | courseid, sectionnumber                                  |
-| local_rsync_move_file_to_other_section        | Moves a module from a section to an other.                                                                                                 | courseid, sectionnumber, targetsectionnumber, modulename |
-| local_rsync_move_all_modules_to_other_section | Moves all modules from a section to an other.                                                                                              | courseid, sectionnumber, targetsectionnumber             |
-| local_rsync_remove_all_sections               | Removes all section of a course.                                                                                                           | courseid                                                 |
-| local_rsync_copy_module                       | Copies a module and puts it in the specified section.                                                                                      | courseid, sectionnumber, targetsectionumber, modulename  |
-| local_rsync_change_course_visibility          | Changes the visibility of a course.                                                                                                        | courseid, visibility (0 or 1)                            |
-| local_rsync_copy_course                       | Copies a module into an other module. The data in the target module is overwritten.                                                        | courseid, newcourseid                                    |
-| local_rsync_copy_all_section_modules          | Copies all modules in a section and puts it in the specified section. Still in dev.                                                        |                                                          |
-| local_rsync_create_section                    | Creates a new section. Is used when a user wants to upload a whole folder, so the foldername is the name of the new section. Still in dev. |                                                          |
+| Function name                                 | Function usage                                                                                                               | Parameters                                               |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| local_rsync_create_file_resource              | Creates a file in a course. The file needs to be in the private files of the user.                                           | filename, courseid, sectionnumber, displayname           |
+| local_rsync_set_section_visibility            | Sets the visibility of a section.                                                                                            | courseid, sectionnumber, visibility (0 or 1)             |
+| local_rsync_remove_file_from_section          | Removes a module from a section.                                                                                             | courseid, sectionnumber, filename                        |
+| local_rsync_rename_section                    | Renames a section.                                                                                                           | courseid, sectionumber, sectionname                      |
+| local_rsync_remove_section                    | Removes a section.                                                                                                           | courseid, sectionnumber                                  |
+| local_rsync_set_file_visibility               | Sets the visibility of a module.                                                                                             | courseid, sectionumber, filename, visibility (0 or 1)    |
+| local_rsync_remove_all_files_from_section     | Removes all modules from a section.                                                                                          | courseid, sectionnumber                                  |
+| local_rsync_move_file_to_other_section        | Moves a module from a section to an other.                                                                                   | courseid, sectionnumber, targetsectionnumber, modulename |
+| local_rsync_move_all_modules_to_other_section | Moves all modules from a section to an other.                                                                                | courseid, sectionnumber, targetsectionnumber             |
+| local_rsync_remove_all_sections               | Removes all section of a course.                                                                                             | courseid                                                 |
+| local_rsync_copy_module                       | Copies a module and puts it in the specified section.                                                                        | courseid, sectionnumber, targetsectionumber, modulename  |
+| local_rsync_change_course_visibility          | Changes the visibility of a course.                                                                                          | courseid, visibility (0 or 1)                            |
+| local_rsync_copy_course                       | Copies a module into an other module. The data in the target module is overwritten.                                          | courseid, newcourseid                                    |
+| local_rsync_copy_all_section_modules          | Copies all modules in a section and puts it in the specified section. Still in dev.                                          |                                                          |
+| local_rsync_create_section                    | Creates a new section. Is used when a user wants to upload a whole folder, so the foldername is the name of the new section. | courseid, sectionname                                    |
 
 ## Parameter list
 
@@ -49,6 +49,7 @@ Here is a list of all possible parameters and what they do:
 | filename/modulename | Name of the module.                                          |
 | newcourseid         | Id of the target course. Can be found in the url.            |
 | visibility          | If the target is visibile or not. 0 for hidden, 1 for shown. |
+| sectionname         | Name of the section                                          |
 
 ## cURL
 
@@ -83,26 +84,27 @@ Option and command list:
 | -m      | Module options.      | v, rm, rma, mv, mva, cp |
 | -t      | Rsync token.         |                         |
 | -u      | Host url.            |                         |
-| -p      | Push.                | f                       |
+| -p      | Push.                | f, d                    |
 | -h      | Shows the help page. |                         |
 
 Command description:
 
-| Option + command | Description                                         | Invocation                                                  |
-| ---------------- | --------------------------------------------------- | ----------------------------------------------------------- |
-| -c v             | Changes course visibility.                          | -c v,courseid,visibility                                    |
-| -c cp            | Copies a course.                                    | -c cp,courseid,newcourseid                                  |
-| -s v             | Changes section visibility.                         | -s v,courseid,sectionnumber,visibilty                       |
-| -s rn            | Renames a section.                                  | -s rn,courseid,sectionnumber,sectionname                    |
-| -s rm            | Removes a section.                                  | -s rm,courseid,sectionnumber                                |
-| -s rma           | Removes all sections in a course.                   | -s rma,courseid                                             |
-| -m v             | Changes module visibility.                          | -m v,courseid,sectionnumber,modulename,visibility           |
-| -m rm            | Removes a module from a section.                    | -m rm,courseid,sectionnumber,modulename                     |
-| -m rma           | Removes all modules from a section.                 | -m rma,courseid,sectionnumber                               |
-| -m mv            | Moves a modules from a section to an other.         | -m mv,courseid,sectionnumber,targetsectionnumber,modulename |
-| -m mva           | Moves all modules from a section to an other.       | -m mva,courseid,sectionnumber,targetsectionnumber           |
-| -m cp            | Copies a module from a section to a target section. | -m cp,courseid,sectionnumber,targetsectionnumber,modulename |
-| -p f             | Pushes a file from the local machine to a section.  | -p f,filepath,filename,courseid,sectionnumber,displayname   |
+| Option + command | Description                                                                                                                      | Invocation                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| -c v             | Changes course visibility.                                                                                                       | -c v,courseid,visibility                                    |
+| -c cp            | Copies a course.                                                                                                                 | -c cp,courseid,newcourseid                                  |
+| -s v             | Changes section visibility.                                                                                                      | -s v,courseid,sectionnumber,visibilty                       |
+| -s rn            | Renames a section.                                                                                                               | -s rn,courseid,sectionnumber,sectionname                    |
+| -s rm            | Removes a section.                                                                                                               | -s rm,courseid,sectionnumber                                |
+| -s rma           | Removes all sections in a course.                                                                                                | -s rma,courseid                                             |
+| -m v             | Changes module visibility.                                                                                                       | -m v,courseid,sectionnumber,modulename,visibility           |
+| -m rm            | Removes a module from a section.                                                                                                 | -m rm,courseid,sectionnumber,modulename                     |
+| -m rma           | Removes all modules from a section.                                                                                              | -m rma,courseid,sectionnumber                               |
+| -m mv            | Moves a modules from a section to an other.                                                                                      | -m mv,courseid,sectionnumber,targetsectionnumber,modulename |
+| -m mva           | Moves all modules from a section to an other.                                                                                    | -m mva,courseid,sectionnumber,targetsectionnumber           |
+| -m cp            | Copies a module from a section to a target section.                                                                              | -m cp,courseid,sectionnumber,targetsectionnumber,modulename |
+| -p f             | Pushes a file from the local machine to a section.                                                                               | -p f,filepath,filename,courseid,sectionnumber,displayname   |
+| -p d             | Pushes a directory from the local machine to a section. The name of the directory is the name of the new section. Not recursive. | -p d,directory_path,courseid                                |
 
 ## Uploading files
 
