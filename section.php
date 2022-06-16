@@ -232,7 +232,7 @@ class local_rsync_section extends external_api {
     /**
      * Lets the user remove a file from a section
      *
-     * @param int     $courseud course id
+     * @param int     $courseid course id
      * @param int     $sectionnumber section number
      * @param string  $filename the name of the file to be removed
      * @return string A string describing the result
@@ -277,7 +277,7 @@ class local_rsync_section extends external_api {
     /**
      * Lets the user renane a section
      *
-     * @param int $courseud course id
+     * @param int $courseid course id
      * @param int $sectionnumber section number
      * @param string $sectionname the new name of the section
      * @return string A string describing the result
@@ -319,9 +319,8 @@ class local_rsync_section extends external_api {
     /**
      * Lets the user remove a section
      *
-     * @param int $courseud course id
+     * @param int $courseid course id
      * @param int $sectionnumber section number
-     * @param string $sectionname the new name of the section
      * @return string A string describing the result
      * @throws moodle_exception to be explained
      */
@@ -367,7 +366,7 @@ class local_rsync_section extends external_api {
     /**
      * Lets the user remove all sections from course
      *
-     * @param int $course id
+     * @param int $courseid course id
      * @return string A string describing the result
      * @throws moodle_exception to be explained
      */
@@ -412,10 +411,10 @@ class local_rsync_section extends external_api {
     /**
      * Lets the user set the visibility of a file in a section
      *
-     * @param int $courseud course id
+     * @param int $courseid course id
      * @param int $sectionnumber section number
-     * @param string $sectionname the new name of the section
-     * @param int $visiblity the visiblity of the file
+     * @param string $filename the file name
+     * @param int $visibility the visiblity of the file
      * @return string A string describing the result
      * @throws moodle_exception to be explained
      */
@@ -579,7 +578,7 @@ class local_rsync_section extends external_api {
      * Lets the user move all modules from a section to an other
      *
      * @param int $courseid course id
-     * @param int $sectionumber section number
+     * @param int $sectionnumber section number
      * @param int $targetsectionnumber target section number
      * @return string A string describing the result
      * @throws moodle_exception to be explained
@@ -629,8 +628,8 @@ class local_rsync_section extends external_api {
      * Lets the user copy a module and insert it into section
      *
      * @param int $courseid courseid
-     * @param int $sectionumber section number
-     * @param int $targetsectionumber target section number
+     * @param int $sectionnumber section number
+     * @param int $targetsectionnumber target section number
      * @param string $modulename name of the module to be copied
      * @return string A string describing the result
      * @throws moodle_exception if the course, the section, the target section or the module doesn't exist
@@ -732,13 +731,13 @@ class local_rsync_section extends external_api {
 
     /**
      * Lets the user create a section at the end of a course
-     * 
+     *
      * @param int $courseid course id
      * @param string $sectionname name of the section
      * @return string A string describing the result.
      * @throws moodle_exception if the specified course doesn't exist or the user doesn't have the rights
      */
-    public static function create_section($courseid, $sectionname){
+    public static function create_section($courseid, $sectionname) {
         global $USER;
 
         // Context validation.
@@ -753,7 +752,7 @@ class local_rsync_section extends external_api {
         // Create the new section in the course.
         $section = course_create_section($courseid);
 
-        // Rename section
+        // Rename section.
         course_update_section($courseid, $section, array('name' => $sectionname));
 
          // Return the success message.
