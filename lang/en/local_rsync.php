@@ -40,6 +40,7 @@ $string['successmessage_section_module_movement'] = 'Successfully moved module w
 $string['successmessage_section_all_module_movement'] = 'Successfully moved all modules from section with the id {$a->sectionid} to the section with the id {$a->targetsectionid} in the course with the id {$a->courseid} by user {$a->username}.';
 $string['successmessage_remove_all_sections'] = 'Successfully removed all sections from the course with the id {$a->courseid} by user {$a->username}.';
 $string['successmessage_copy_module'] = 'Successfully copied module {$a->modulename} from section {$a->section} to section {$a->targetsection} in the course with the id {$a->courseid}by the user {$a->username}';
+$string['successmessage_create_section'] = 'Successfully created section named {$a->sectionname} with the nummer {$a->sectionnumner} in the course with the id {$a->courseid} by the user {$a->username}';
 
 $string['errormessage_section_rename'] = 'An error occured while removing section with the id {$a->sectionnumber} in the course with the id {$a->courseid} by user {$a->username}.';
 $string['errormessage_section_file_visibility'] = 'An error occured while changing visiblity of file with the name {$a->filename} in section with the id {$a->sectionnumber} in the course with the id {$a->courseid} by user {$a->username}.';

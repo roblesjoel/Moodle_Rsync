@@ -170,6 +170,18 @@ class local_rsync_section extends external_api {
     }
 
     /**
+     * Returns description of method parameters
+     * @return external_function_parameters
+     */
+    public static function create_section_parameters() {
+        return new external_function_parameters(
+            array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
+                  'sectionname' => new external_value(PARAM_TEXT, 'The name of the new section', VALUE_REQUIRED),
+            )
+        );
+    }
+
+    /**
      * Lets the user set the visibilty of a section
      *
      * @param int     $courseid course id
@@ -719,6 +731,38 @@ class local_rsync_section extends external_api {
     }
 
     /**
+     * Lets the user create a section at the end of a course
+     * 
+     * @param int $courseid course id
+     * @param string $sectionname name of the section
+     * @return string A string describing the result.
+     * @throws moodle_exception if the specified course doesn't exist or the user doesn't have the rights
+     */
+    public static function create_section($courseid, $sectionname){
+        global $USER;
+
+        // Context validation.
+        $context = \context_user::instance($USER->id);
+        self::validate_context($context);
+
+        $coursecontext = \context_course::instance($courseid);
+        if (!has_capability('moodle/course:setcurrentsection', $coursecontext)) {
+            throw new moodle_exception('cannotcreatesection');
+        }
+
+        // Create the new section in the course.
+        $section = course_create_section($courseid);
+
+        // Rename section
+        course_update_section($courseid, $section, array('name' => $sectionname));
+
+         // Return the success message.
+         return get_string('successmessage_create_section', 'local_rsync',
+         array('sectionname' => $sectionname, 'sectionnumber' => $section->section,
+               'courseid' => $courseid, 'username' => fullname($USER)));
+    }
+
+    /**
      * Returns description of method result value
      * @return external_description
      */
@@ -795,6 +839,14 @@ class local_rsync_section extends external_api {
      * @return external_description
      */
     public static function copy_module_returns() {
+        return new external_value(PARAM_TEXT, 'Course id and username');
+    }
+
+    /**
+     * Returns description of method result value
+     * @return external_description
+     */
+    public static function create_section_returns() {
         return new external_value(PARAM_TEXT, 'Course id and username');
     }
 }
