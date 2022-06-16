@@ -83,7 +83,7 @@ Option and command list:
 | -m      | Module options.      | v, rm, rma, mv, mva, cp |
 | -t      | Rsync token.         |                         |
 | -u      | Host url.            |                         |
-| -p      | Push file.           | f                       |
+| -p      | Push.                | f                       |
 | -h      | Shows the help page. |                         |
 
 Command description:
@@ -105,6 +105,17 @@ Command description:
 | -p f             | Pushes a file from the local machine to a section.  | -p f,filepath,filename,courseid,sectionnumber,displayname   |
 
 ## Uploading files
+
+There is a possibility to upload files to a moodle course. For that you need the `Moodle mobile web service`.
+If you use the script u can change the variable `web_service_token` in the Rsync.py file.
+An option to override the default is comming in the future.
+
+If you use cURL you need to make 3 calls:
+
+1. `curl -F "file_1=@$<filename>" "<moodle_host>/webservice/upload.php?token=$<web_service_token>`
+   1.1 Copy the item id of the response.
+2. `curl "<moodle_host>/webservice/rest/server.php?wstoken=$<web_service_token>&moodlewsrestformat=json&wsfunction=core_user_add_user_private_files&draftid=$<itemid>`
+3. `curl -sS "<moodle_host>/webservice/rest/server.php?wstoken=$<rysnc_token>&wsfunction=local_ws_fileassistant_create_file_resource&filename=$<filename>&courseid=$<courseid>&sectionnumber=$<sectionnumber>&displayname=$<displayname>"`
 
 ## Acknowledgements
 
