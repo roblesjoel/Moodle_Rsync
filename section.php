@@ -182,6 +182,18 @@ class local_rsync_section extends external_api {
     }
 
     /**
+     * Returns description of method parameters
+     * @return external_function_parameters
+     */
+    public static function copy_all_section_modules_parameters() {
+        return new external_function_parameters(
+            array('courseid' => new external_value(PARAM_INT, 'The course id', VALUE_REQUIRED),
+                  'sectionnumber' => new external_value(PARAM_INT, 'The id of the section', VALUE_REQUIRED),
+                  'targetsectionnumber' => new external_value(PARAM_INT, 'The id of the target section', VALUE_REQUIRED),
+            )
+        );
+    }
+    /**
      * Lets the user set the visibilty of a section
      *
      * @param int     $courseid course id
@@ -740,6 +752,10 @@ class local_rsync_section extends external_api {
     public static function create_section($courseid, $sectionname) {
         global $USER;
 
+        // Check parameters.
+        $params = self::validate_parameters(self::create_section_parameters(),
+        array('courseid' => $courseid, 'sectionname' => $sectionname));
+
         // Context validation.
         $context = \context_user::instance($USER->id);
         self::validate_context($context);
@@ -759,6 +775,85 @@ class local_rsync_section extends external_api {
          return get_string('successmessage_create_section', 'local_rsync',
          array('sectionname' => $sectionname, 'sectionnumber' => $section->section,
                'courseid' => $courseid, 'username' => fullname($USER)));
+    }
+
+    /**
+     * Lets the user copy all modules of a section and place it in a target section
+     * 
+     */
+    public static function copy_all_section_modules($courseid, $sectionnumber, $targetsectionnumber){
+        global $DB, $USER;
+
+        // Check parameters.
+        $params = self::validate_parameters(self::copy_all_section_modules_parameters(),
+        array('courseid' => $courseid, 'sectionnumber' => $sectionnumber, 'targetsectionnumber' => $targetsectionnumber));
+
+        // Check if the course is found. If not, throw exception.
+        $course = $DB->get_record('course', array('id' => $courseid));
+        if ($course == null) {
+            throw new moodle_exception('coursenotfound');
+        }
+
+        // Get all modules of course.
+        $modules = get_array_of_activities($courseid);
+
+        // Loop through them.
+        foreach ($modules as $module) {
+            // If module section is the same as the given section, duplicate it.
+            if ($module->section == $sectionnumber) {
+                // Create a backup.
+                $bc = new backup_controller(backup::TYPE_1ACTIVITY, $module->cm,
+                        backup::FORMAT_MOODLE, backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id);
+                $backupid = $bc->get_backupid();;
+                $bc->execute_plan();
+                $bc->destroy();
+
+                // And restore it.
+                $rc = new restore_controller($backupid, $courseid, backup::INTERACTIVE_NO,
+                            backup::MODE_IMPORT, $USER->id, backup::TARGET_CURRENT_ADDING);
+                $cmcontext = context_module::instance($module->cm);
+                $rc->execute_precheck();
+                $rc->execute_plan();
+
+                // Get the new module id.
+                $newcmid = null;
+                $tasks = $rc->get_plan()->get_tasks();
+                foreach ($tasks as $task) {
+                    if (is_subclass_of($task, 'restore_activity_task')) {
+                        if ($task->get_old_contextid() == $cmcontext->id) {
+                            $newcmid = $task->get_moduleid();
+                            break;
+                        }
+                    }
+                }
+                $rc->destroy();
+
+                // If no module is found, throw exception.
+                if (!$newcmid) {
+                    throw new moodle_exception('newmodulenotfound');
+                }
+
+                // Get module info of course.
+                $coursemodinfo = get_fast_modinfo($courseid, 0, false);
+                // Get the new module.
+                $mod = $coursemodinfo->get_cm($newcmid);
+                // And get info of the target section.
+                $sectioninfo = $coursemodinfo->get_section_info($targetsectionnumber);
+
+                // If that section doesn't exist, throw error.
+                if (!$sectioninfo) {
+                    throw new moodle_exception('targetsectionnotfound');
+                }
+
+                // Else move new module to target section and leave the loop.
+                moveto_module($mod, $sectioninfo);
+            }
+        }
+
+        // Return the success message.
+        return get_string('successmessage_copy_all_section_modules', 'local_rsync',
+        array('sectionnumber' => $sectionnumber, 'targetsectionnumber' => $targetsectionnumber,
+              'courseid' => $courseid, 'username' => fullname($USER)));
     }
 
     /**
@@ -846,6 +941,14 @@ class local_rsync_section extends external_api {
      * @return external_description
      */
     public static function create_section_returns() {
+        return new external_value(PARAM_TEXT, 'Course id and username');
+    }
+
+    /**
+     * Returns description of method result value
+     * @return external_description
+     */
+    public static function copy_all_section_modules_returns() {
         return new external_value(PARAM_TEXT, 'Course id and username');
     }
 }
