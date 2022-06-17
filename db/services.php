@@ -142,7 +142,8 @@ $services = array(
             'local_rsync_remove_file_from_section', 'local_rsync_rename_section', 'local_rsync_remove_section',
             'local_rsync_set_file_visibility', 'local_rsync_remove_all_files_from_section', 'local_rsync_change_course_visibility',
             'local_rsync_move_file_to_other_section', 'local_rsync_move_all_modules_to_other_section', 'local_rsync_copy_course',
-            'local_rsync_remove_all_sections', 'local_rsync_copy_module', 'local_rsync_create_section', 'local_rsync_copy_all_section_modules'),
+            'local_rsync_remove_all_sections', 'local_rsync_copy_module', 'local_rsync_create_section',
+            'local_rsync_copy_all_section_modules'),
         'restrictedusers' => 0,
         'enabled' => 1,
     )
