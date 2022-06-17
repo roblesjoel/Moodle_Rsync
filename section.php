@@ -779,9 +779,14 @@ class local_rsync_section extends external_api {
 
     /**
      * Lets the user copy all modules of a section and place it in a target section
-     * 
+     *
+     * @param int $courseid courseid
+     * @param int $sectionnumber section number
+     * @param int $targetsectionnumber target section number
+     * @return string A string describing the result.
+     * @throws moodle_exception if the specified course doesn't exist or the user doesn't have the rights
      */
-    public static function copy_all_section_modules($courseid, $sectionnumber, $targetsectionnumber){
+    public static function copy_all_section_modules($courseid, $sectionnumber, $targetsectionnumber) {
         global $DB, $USER;
 
         // Check parameters.

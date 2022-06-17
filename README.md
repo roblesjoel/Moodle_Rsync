@@ -70,7 +70,7 @@ The script in the [clients](/clients/) folder can be invoked without commands:
 `python3 Rsync.py`
 
 After the start of the script, you will be asked to input a token and a host url.
-If you leave both inputs empty, the script wil lused the default values, which are coded in the script ([Will be changed](#12))
+If you leave both inputs empty, the script will use the default values which are coded in the script.
 
 ## Python with options
 
@@ -112,9 +112,9 @@ Command description:
 
 ## Uploading files
 
-There is a possibility to upload files to a moodle course. For that you need the `Moodle mobile web service`.
-If you use the script u can change the variable `web_service_token` in the Rsync.py file.
-An option to override the default is comming in the future.
+There is a possibility to upload files to a Moodle course. For that you need the `Moodle mobile web service`.
+If you use the script you can change the variable `web_service_token` in the Rsync.py file.
+An option to override the default is coming in the future.
 
 If you use cURL you need to make 3 calls:
 
@@ -125,4 +125,4 @@ If you use cURL you need to make 3 calls:
 
 ## Acknowledgements
 
-Thanks a lot to @lucaboesch for helping us in this project.
+Thanks a lot to [@lucaboesch](https://github.com/lucaboesch) for helping us in this project.
