@@ -121,7 +121,7 @@ If you use cURL you need to make 3 calls:
 1. `curl -F "file_1=@$<filename>" "<moodle_host>/webservice/upload.php?token=$<web_service_token>`
    1.1 Copy the item id of the response.
 2. `curl "<moodle_host>/webservice/rest/server.php?wstoken=$<web_service_token>&moodlewsrestformat=json&wsfunction=core_user_add_user_private_files&draftid=$<itemid>`
-3. `curl -sS "<moodle_host>/webservice/rest/server.php?wstoken=$<rysnc_token>&wsfunction=local_ws_fileassistant_create_file_resource&filename=$<filename>&courseid=$<courseid>&sectionnumber=$<sectionnumber>&displayname=$<displayname>"`
+3. `curl -sS "<moodle_host>/webservice/rest/server.php?wstoken=$<rysnc_token>&wsfunction=local_rsync_create_file_resource&filename=$<filename>&courseid=$<courseid>&sectionnumber=$<sectionnumber>&displayname=$<displayname>"`
 
 ## Acknowledgements
 

@@ -31,7 +31,7 @@ sectionhelp = 'Command to change a section. Visibility: v,courseid,sectionnumber
 parser.add_option("-s", "--section", dest="section", type="string", help=sectionhelp)
 
 # module -m
-# Visibility: v,courseid,sectionnumer,visibility,modulename -> v,2,2,test.pdf,1
+# Visibility: v,courseid,sectionnumer,visibility,modulename -> v,2,2,1,test.pdf
 # Remove from section: rm,courseid,sectionnumber,modulename -> rs,2,2,test.pdf
 # Remove all from section: rma,courseid,sectionnumber -> rma,2,2
 # Move to other section: mv,courseid,sectionnumber,targetsectionnumber,modulename -> mv,2,2,3,test.pdf
