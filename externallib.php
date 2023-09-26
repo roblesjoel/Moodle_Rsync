@@ -97,7 +97,7 @@ class local_rsync_external extends external_api {
 
         $component = "user";
         $filearea = "private";
-        if ($filepath == '' OR !isset($filepath)) {
+        if ($filepath == '' || !isset($filepath)) {
             $filepath = "/";
         }
         if ($displayname == '') {
@@ -113,7 +113,7 @@ class local_rsync_external extends external_api {
             if ($file->is_directory()) {
                 continue;
             }
-            if (($file->get_filepath() == $filepath) AND ($file->get_filename() == $filename)) {
+            if (($file->get_filepath() == $filepath) && ($file->get_filename() == $filename)) {
                 // Found the file, now make a temporary one to pass on.
 
                 $tempfileinfo = new stdClass();
