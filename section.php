@@ -25,6 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->libdir . '/externallib.php');
 require_once($CFG->dirroot. '/course/lib.php');
 require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
 require_once($CFG->dirroot . "/backup/util/includes/restore_includes.php");
