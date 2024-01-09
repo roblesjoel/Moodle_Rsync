@@ -27,7 +27,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['pluginname'] = 'rsync web service';
-$string['local/rsync:managefiles'] = 'Manage courses using the rsync web service';
+$string['rsync:managefiles'] = 'Manage courses using the rsync web service';
 $string['successmessage_file_upload'] = 'Added file {$a->file} to course id {$a->courseid} in section {$a->coursesection} by user {$a->username}.';
 
 $string['successmessage_section_visibility'] = 'Successfully {$a->visibility} section {$a->sectionnumber} in course with the id {$a->courseid} by user {$a->username}.';
